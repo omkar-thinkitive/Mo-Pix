@@ -5,8 +5,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 public class MopixApplication {
-
 	public static void main(String[] args) {
+		System.out.println("Running Mopix");
 		SpringApplication.run(MopixApplication.class, args);
 	}
 
