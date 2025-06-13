@@ -37,7 +37,7 @@ jobs:
 
       - name: Build and Push Docker image
         run: |
-          IMAGE_URI=941377157856.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}
+          IMAGE_URI=941377157856.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_NAME }}
           docker build -t $IMAGE_URI:latest .
           docker push $IMAGE_URI:latest
 
