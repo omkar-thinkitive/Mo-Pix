@@ -2,7 +2,7 @@ spring:
   application:
     name: Mopix
   datasource:
-    url: jdbc:postgresql://localhost:5432/mopix_db
+    url: jdbc:postgresql://172.31.19.95/mopix-dev
     username: admin
     password: thinkitive123
   jpa:
