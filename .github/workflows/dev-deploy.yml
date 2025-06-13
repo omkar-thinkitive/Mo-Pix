@@ -41,19 +41,30 @@ jobs:
           docker build -t $IMAGE_URI:latest .
           docker push $IMAGE_URI:latest
 
-      - name: Deploy to EC2
-        uses: appleboy/ssh-action@v1.0.0
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ec2-user
-          key: ${{ secrets.EC2_KEY }}
-          script: |
+      - name: Create PEM file
+        run: |
+          echo "$PEM_FILE" > dev-key.pem
+          chmod 400 dev-key.pem
+        env:
+          PEM_FILE: ${{ secrets.EC2_KEY }}
+
+      - name: SSH and Deploy on EC2
+        run: |
+          ssh -i dev-key.pem -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_HOST }} << 'EOF'
+            echo "Logged into EC2"
+
+            # Login to ECR
             aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | \
             docker login --username AWS --password-stdin 941377157856.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
 
-            docker pull 941377157856.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:latest
+            # Pull new image
+            docker pull 941377157856.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_NAME }}:latest
 
+            # Stop & remove existing container
             docker stop app || true
             docker rm app || true
 
-            docker run -d --name app -p 80:8080 941377157856.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:latest
+            # Run the new container
+            docker run -d --name app -p 80:8080 \
+              941377157856.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_NAME }}:latest
+          EOF
