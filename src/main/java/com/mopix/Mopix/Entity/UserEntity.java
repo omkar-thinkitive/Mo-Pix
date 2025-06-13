@@ -1,5 +1,6 @@
 package com.mopix.Mopix.Entity;
 
+import com.mopix.Mopix.Dtos.enums.Gender;
 import com.mopix.Mopix.Dtos.enums.UserRoles;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -25,6 +26,16 @@ public class UserEntity {
     private String middlename;
     private String password;
 
+    private String dob;
+    private String bio;
+    private String email;
+    private String phone;
+
+    @Enumerated(EnumType.STRING)
+    private Gender gender;
+
     @Enumerated(EnumType.STRING)
     private UserRoles userRole;
+
+    private boolean deleted = false;
 }

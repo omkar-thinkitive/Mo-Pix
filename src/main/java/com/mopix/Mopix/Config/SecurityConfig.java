@@ -34,7 +34,12 @@ public class SecurityConfig {
         return http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/master/v1/login", "/api/master/v1/user/create").permitAll()
+                        .requestMatchers(
+                                "/api/master/v1/login",
+                                "/api/master/v1/login/callback-google",
+                                "/api/master/v1/login-github",
+                                "/api/master/v1/user/create"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

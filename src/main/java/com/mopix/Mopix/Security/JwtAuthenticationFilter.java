@@ -24,6 +24,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Autowired
     private UserDetailService userDetailsService;
 
+    public String userNameFromToken = "";
+
 
 
     @Override
@@ -40,6 +42,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (header != null && header.startsWith("Bearer ")) {
             token = header.substring(7);
             username = jwtProvider.getUsernameFromToken(token);
+            userNameFromToken = username;
         }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {

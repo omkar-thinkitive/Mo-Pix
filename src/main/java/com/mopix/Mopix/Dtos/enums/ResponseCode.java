@@ -5,5 +5,6 @@ public enum ResponseCode {
     OK,
     BAD_REQUEST,
     CREATED,
-    SUCCESS
+    SUCCESS,
+    INTERNAL_ERROR
 }
