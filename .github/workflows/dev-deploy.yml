@@ -61,10 +61,10 @@ jobs:
             sudo docker pull 941377157856.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_NAME }}:latest
 
             # Stop & remove existing container
-            docker stop app || true
-            docker rm app || true
+            sudo docker stop app || true
+            sudo docker rm app || true
 
             # Run the new container
-            docker run -d --name app -p 80:8080 \
+            sudo docker run -d --name app -p 80:8080 \
               941377157856.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_NAME }}:latest
           EOF
