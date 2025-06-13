@@ -50,7 +50,7 @@ jobs:
 
       - name: SSH and Deploy on EC2
         run: |
-          ssh -i dev-key.pem -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_HOST }} << 'EOF'
+          ssh -i dev-key.pem -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
             echo "Logged into EC2"
 
             # Login to ECR
