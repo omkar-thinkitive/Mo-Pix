@@ -1,0 +1,10 @@
+package com.mopix.Mopix.Services;
+
+import org.springframework.stereotype.Service;
+
+@Service
+public interface LoginService {
+    String signUpWithGoogle(String code);
+
+    String signUpWithGitHub(String code);
+}

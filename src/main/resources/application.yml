@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: Mopix
+  datasource:
+    url: jdbc:postgresql://localhost:5432/mopix_db
+    username: admin
+    password: thinkitive123
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+jwt:
+  secret: 8f2a233d56c9b97bbf86db54d6b2df61ff13e487f37b5bba7a1d1b9859f6d9e38db22a87c93d7b71a7fcd0d19cb77b0c5c4e2bf27b3fd69bae1e0f7b41a6e8003fe42afd979bdb0d8469809b6ae546f961bc417ba3c93a089498a5f6adfe8a6a42763a93ce6a3fb999f5ac978057c864cff8c68bfb5bf3876a840d8d986de22841bd4475c451cd72a341d9ddf6a9300eec666ecfe3057ff02a46cc04cd6a75246be88889ab36b935789b09179c36d622c3779d11d2f7b98e63e4beaa25e3d7e834d7a300d813b1f41636ac1b00ba16244ac27eefb93841daa9e27daa28d376511c1ea0afd4fbcefe4ed7c5870b48f28d5da916ab8cb250061ac81fb92b2b4343
