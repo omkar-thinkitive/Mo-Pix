@@ -58,7 +58,7 @@ jobs:
             docker login --username AWS --password-stdin 941377157856.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
 
             # Pull new image
-            docker pull 941377157856.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_NAME }}:latest
+            sudo docker pull 941377157856.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_NAME }}:latest
 
             # Stop & remove existing container
             docker stop app || true
