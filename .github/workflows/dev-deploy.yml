@@ -62,7 +62,7 @@ jobs:
             TAG=${{ env.IMAGE_TAG }}
 
             # Login to ECR
-            sudo docker login --username AWS --password-stdin 941377157856.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+            aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin 941377157856.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
             # Stop and remove existing container
             sudo docker stop app || true
             sudo docker rm app || true
