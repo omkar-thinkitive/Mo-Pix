@@ -21,8 +21,8 @@ spring:
     change-log: classpath:db/master.yaml
     enabled: true
   github:
-    client-id: { YOUR_CLIENT_ID }
-    client-secret: { YOUR_CLIENT_SECRET }
+    client-id: YOUR_CLIENT_ID
+    client-secret: YOUR_CLIENT_SECRET
     scope: read:user, user:email
 
 
