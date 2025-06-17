@@ -2,7 +2,7 @@ spring:
   application:
     name: Mopix
   datasource:
-    url: jdbc:postgresql://172.31.19.95:5432/mopix-dev
+    url: jdbc:postgresql://localhost:5432/mopix_db
     username: admin
     password: thinkitive123
     driver-class-name: org.postgresql.Driver
@@ -21,8 +21,8 @@ spring:
     change-log: classpath:db/master.yaml
     enabled: true
   github:
-    client-id: { YOUR_CLIENT_ID }
-    client-secret: { YOUR_CLIENT_SECRET }
+    client-id:  YOUR_CLIENT_ID
+    client-secret: YOUR_CLIENT_SECRET
     scope: read:user, user:email
 
 
