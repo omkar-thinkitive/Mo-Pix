@@ -11,6 +11,7 @@ import com.mopix.Mopix.Services.UserDetailService;
 import com.mopix.Mopix.utils.JwtUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -48,6 +49,12 @@ public class LoginServiceImpl implements LoginService {
 
     @Autowired
     private JwtProvider jwtProvider;
+
+    @Value("${spring.github.client-id}")
+    private String gitHubClientId;
+
+    @Value("${spring.github.client-secret}")
+    private String gitHubClientSecret;
 
     private final RestTemplate restTemplate = new RestTemplate();
 
@@ -188,8 +195,8 @@ public class LoginServiceImpl implements LoginService {
     }
 
     private String getAccessToken(String code) {
-        String clientId = "";
-        String clientSecret = "";
+        String clientId = gitHubClientId;
+        String clientSecret = gitHubClientSecret;
         HttpHeaders headers = new HttpHeaders();
         headers.setAccept(List.of(MediaType.APPLICATION_JSON));
 

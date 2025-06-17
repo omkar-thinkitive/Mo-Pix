@@ -39,7 +39,7 @@ public class SecurityConfig {
                                 "/api/master/v1/login/callback-google",
                                 "/api/master/v1/login-github",
                                 "/api/master/v1/user/create",
-                                "/swagger-ui", "/swagger-ui/", "/swagger-ui/index.html",
+                                "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",

@@ -2,13 +2,18 @@ package com.mopix.Mopix.Services.ServiceImpl;
 
 import com.mopix.Mopix.Dtos.Request.UserCreateRequest;
 import com.mopix.Mopix.Dtos.Response.UserResponse;
+import com.mopix.Mopix.Dtos.enums.Passion;
+import com.mopix.Mopix.Entity.PassionEntity;
 import com.mopix.Mopix.Entity.UserEntity;
+import com.mopix.Mopix.Repository.PassionRepo;
 import com.mopix.Mopix.Repository.UserRepo;
 import com.mopix.Mopix.Services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -19,6 +24,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private PassionRepo passionRepo;
 
     @Override
     public void saveUser(UserCreateRequest userCreateRequest) {
@@ -31,6 +39,15 @@ public class UserServiceImpl implements UserService {
                 .password(passwordEncoder.encode(userCreateRequest.getPassword()))
                 .build();
         userRepo.save(userEntity);
+
+//        PassionEntity passion = new PassionEntity();
+//        List<PassionEntity> passionList = new ArrayList<>();
+//
+//        List<Passion> list = userCreateRequest.getPassionList();
+//        for(Passion it: list){
+//            passionList.add(new PassionEntity(userEntity,it));
+//        }
+//        passionRepo.saveAll(passionList);
     }
 
     @Override
