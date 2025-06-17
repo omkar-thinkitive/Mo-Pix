@@ -11,9 +11,12 @@ import com.mopix.Mopix.Repository.UserRepo;
 import com.mopix.Mopix.Services.CommentService;
 import com.mopix.Mopix.utils.Expection.MopixExpection;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -39,8 +42,12 @@ public class CommentServiceImpl implements CommentService {
             throw new MopixExpection(ResponseCode.INTERNAL_ERROR,"post not Found");
         }
 
+        Long commentCount = post.getCommentCount();
+        post.setCommentCount(++commentCount);
+        postRepo.save(post);
+
         CommentEntity comment = new CommentEntity();
-        comment.setComment(comment.getComment());
+        comment.setComment(commentRequest.getComment());
         comment.setUserEntity(user);
         comment.setPostEntity(post);
         comment.setCommentAt(Instant.now());
@@ -73,5 +80,19 @@ public class CommentServiceImpl implements CommentService {
         commentEntity = comment.get();
         commentEntity.setComment(commentRequest.getComment());
         commentRepo.save(commentEntity);
+    }
+
+    @Override
+    public Page<CommentRequest> getAllPostComment(Long id, Pageable pageable) throws MopixExpection {
+
+        Page<CommentEntity> commentEntities = commentRepo.findAllByPostEntity(id,pageable);
+
+        return commentEntities.map(comment -> {
+            CommentRequest build = CommentRequest.builder()
+                    .userName(comment.getUserEntity().getUserName())
+                    .comment(comment.getComment())
+                    .build();
+            return build;
+        });
     }
 }

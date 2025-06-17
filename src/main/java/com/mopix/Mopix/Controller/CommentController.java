@@ -6,8 +6,13 @@ import com.mopix.Mopix.Services.CommentService;
 import com.mopix.Mopix.utils.Expection.MopixExpection;
 import com.mopix.Mopix.utils.Response;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/master/v1/comment")
@@ -33,4 +38,13 @@ public class CommentController extends AppController{
         commentService.updateComment(id,commentRequest);
         return success(ResponseCode.SUCCESS,"Comment updated Successfully");
     }
+
+    @GetMapping("comment-for-post")
+    ResponseEntity<Response> getAllComment(
+            @PathVariable Long id,
+            @org.springdoc.core.annotations.ParameterObject Pageable pageable) throws MopixExpection{
+        Page<CommentRequest> list = commentService.getAllPostComment(id,pageable);
+        return success(ResponseCode.SUCCESS,"Comment updated Successfully",list);
+    }
+
 }

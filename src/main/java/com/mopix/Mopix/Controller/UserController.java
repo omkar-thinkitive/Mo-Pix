@@ -43,5 +43,4 @@ public class UserController extends AppController {
         return success(ResponseCode.CREATED, "Liked Post Saved successfully");
     }
 
-
 }
