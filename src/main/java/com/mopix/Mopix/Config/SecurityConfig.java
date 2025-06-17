@@ -38,7 +38,13 @@ public class SecurityConfig {
                                 "/api/master/v1/login",
                                 "/api/master/v1/login/callback-google",
                                 "/api/master/v1/login-github",
-                                "/api/master/v1/user/create"
+                                "/api/master/v1/user/create",
+                                "/swagger-ui", "/swagger-ui/", "/swagger-ui/index.html",
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/swagger-resources/**",
+                                "/webjars/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
