@@ -14,6 +14,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
 import java.io.IOException;
+import java.util.List;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -26,16 +27,32 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     public String userNameFromToken = "";
 
-
+    private static final List<String> EXCLUDED_PATHS = List.of(
+            "/api/master/v1/login",
+            "/api/master/v1/login/callback-google",
+            "/api/master/v1/login-github",
+            "/api/master/v1/user/create",
+            "/swagger-ui", "/swagger-ui/", "/swagger-ui/index.html",
+            "/v3/api-docs/**",
+            "/swagger-ui/**",
+            "/swagger-ui.html",
+            "/swagger-resources/**",
+            "/webjars/**"
+    );
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
+        String path = request.getServletPath();
+
+        if (EXCLUDED_PATHS.stream().anyMatch(path::startsWith)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         String header = request.getHeader("Authorization");
-        System.out.println(header);
         String token = null;
         String username = null;
 
