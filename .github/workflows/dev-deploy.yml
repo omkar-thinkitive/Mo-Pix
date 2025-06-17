@@ -37,9 +37,14 @@ jobs:
 
       - name: Build and Push Docker image
         run: |
+          COMMIT_SHA=$(git rev-parse --short HEAD)
           IMAGE_URI=941377157856.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_NAME }}
-          docker build -t $IMAGE_URI:latest .
+          
+          docker build --no-cache -t $IMAGE_URI:latest -t $IMAGE_URI:$COMMIT_SHA .
           docker push $IMAGE_URI:latest
+          docker push $IMAGE_URI:$COMMIT_SHA
+          
+          echo "IMAGE_TAG=$COMMIT_SHA" >> $GITHUB_ENV
 
       - name: Create PEM file
         run: |
@@ -53,18 +58,24 @@ jobs:
           ssh -i dev-key.pem -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
             echo "Logged into EC2"
 
+            IMAGE_URI=941377157856.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_NAME }}
+            TAG=${{ env.IMAGE_TAG }}
+
             # Login to ECR
             aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | \
-            docker login --username AWS --password-stdin 941377157856.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+            docker login --username AWS --password-stdin \$IMAGE_URI
 
-            # Pull new image
-            sudo docker pull 941377157856.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_NAME }}:latest
-
-            # Stop & remove existing container
+            # Stop and remove existing container
             sudo docker stop app || true
             sudo docker rm app || true
 
-            # Run the new container
-            sudo docker run -d --name app -p 80:8080 \
-              941377157856.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_NAME }}:latest
+            # Remove old image (optional safety)
+            sudo docker rmi \$IMAGE_URI:latest || true
+            sudo docker rmi \$IMAGE_URI:\$TAG || true
+
+            # Pull the latest by tag
+            sudo docker pull \$IMAGE_URI:\$TAG
+
+            # Run container
+            sudo docker run -d --name app -p 80:8080 \$IMAGE_URI:\$TAG
           EOF
