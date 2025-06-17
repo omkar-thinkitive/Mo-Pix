@@ -1,9 +1,11 @@
 package com.mopix.Mopix.utils.Expection;
 
 import com.mopix.Mopix.Dtos.enums.ResponseCode;
+import lombok.Getter;
 
 public class MopixExpection extends Exception{
 
+    @Getter
     private ResponseCode errorCode;
     private String[] fields;
     private Exception exception;
@@ -25,4 +27,5 @@ public class MopixExpection extends Exception{
         this.errorCode = ResponseCode.INTERNAL_ERROR;
         this.exception = exception;
     }
+
 }
