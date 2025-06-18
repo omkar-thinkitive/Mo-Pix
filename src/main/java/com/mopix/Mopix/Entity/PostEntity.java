@@ -25,6 +25,9 @@ public class PostEntity extends Base{
     @JoinColumn(name = "user_id")
     private UserEntity userEntity;
 
+    private String title;
+    private String fileKey;
+
     private Long viewsCount;
     private Long likeCount;
     private Long shareCount;

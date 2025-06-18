@@ -45,10 +45,16 @@ public class LoginController extends AppController{
         return success(ResponseCode.SUCCESS, "Login successful", token);
     }
 
+//    @GetMapping("/login/callback-google")
+//    public ResponseEntity<Response> loginGoogle(@RequestParam String code){
+//        String token = loginService.signUpWithGoogle(code);
+//        return success(ResponseCode.OK, "SingUp successfully",token);
+//    }
+
     @GetMapping("/login/callback-google")
-    public ResponseEntity<Response> loginGoogle(@RequestParam String code){
-        String token = loginService.signUpWithGoogle(code);
-        return success(ResponseCode.OK, "SingUp successfully",token);
+    public ResponseEntity<Map<String, String>> googleLogin(@RequestParam("code") String code) {
+        String jwt = loginService.signUpWithGoogle(code);
+        return ResponseEntity.ok(Map.of("token", jwt));
     }
 
     @GetMapping("/login-github")
