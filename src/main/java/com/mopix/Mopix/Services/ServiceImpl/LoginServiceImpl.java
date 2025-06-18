@@ -23,10 +23,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -131,6 +128,7 @@ public class LoginServiceImpl implements LoginService {
             UserEntity user = new UserEntity();
             user.setUserName(email);
             user.setFirstname((String) userInfo.get("name"));
+            user.setPassword(String.valueOf(UUID.randomUUID()));
             userRepo.save(user);
         }
 
@@ -162,6 +160,7 @@ public class LoginServiceImpl implements LoginService {
         body.add("grant_type", "authorization_code");
 
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
+        System.out.println(request.getBody());
 
         ResponseEntity<Map> response = restTemplate.postForEntity(
                 "https://oauth2.googleapis.com/token", request, Map.class);

@@ -29,8 +29,8 @@ public  class AWSServiceImpl implements AWSService {
     @Autowired
     private S3Client s3Client;
 
-//    @Autowired
-//    private S3Presigner s3Presigner;
+    @Autowired
+    private S3Presigner s3Presigner;
 
 
     @Override
@@ -56,23 +56,21 @@ public  class AWSServiceImpl implements AWSService {
 
     @Override
     public String getPreSingedURL(String key) throws MopixExpection, IOException {
-//        try {
-//            GetObjectRequest getObjectRequest = GetObjectRequest.builder()
-//                    .bucket(s3Bucket)
-//                    .key(key)
-//                    .build();
-//
-//            GetObjectPresignRequest request = GetObjectPresignRequest.builder()
-//                    .signatureDuration(Duration.ofMinutes(15))
-//                    .getObjectRequest(getObjectRequest)
-//                    .build();
-//
-////            PresignedGetObjectRequest presignedGetObjectRequest = s3Client.get(request);
-//            return rn
-//        } catch (Exception e) {
-//            throw new RuntimeException(e);
-//        }
-        return null;
+        try {
+            GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                    .bucket(s3Bucket)
+                    .key(key)
+                    .build();
 
+            GetObjectPresignRequest request = GetObjectPresignRequest.builder()
+                    .signatureDuration(Duration.ofMinutes(15))
+                    .getObjectRequest(getObjectRequest)
+                    .build();
+
+            PresignedGetObjectRequest presignedGetObjectRequest = s3Presigner.presignGetObject(request);
+            return presignedGetObjectRequest.url().toString();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }

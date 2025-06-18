@@ -18,9 +18,9 @@ public class UserDetailController extends AppController{
     private UserService userService;
 
 
-    @GetMapping("/id")
-    ResponseEntity<Response> getUser(){
-        UserResponse userResponse =  userService.getUser();
-        return success(ResponseCode.SUCCESS, "User created sucessfully",userResponse);
-    }
+//    @GetMapping("/id")
+//    ResponseEntity<Response> getUser(){
+//        UserResponse userResponse =  userService.getUser();
+//        return success(ResponseCode.SUCCESS, "User created sucessfully",userResponse);
+//    }
 }

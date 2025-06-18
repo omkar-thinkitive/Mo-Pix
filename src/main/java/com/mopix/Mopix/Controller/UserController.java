@@ -31,9 +31,9 @@ public class UserController extends AppController {
         return success(ResponseCode.CREATED, "User created successfully");
     }
 
-    @GetMapping("/id")
-    ResponseEntity<Response> getUser() throws MopixExpection{
-        UserResponse userResponse =  userService.getUser();
+    @GetMapping("/id/{id}")
+    ResponseEntity<Response> getUser(@RequestParam Long id) throws MopixExpection{
+        UserResponse userResponse =  userService.getUser(id);
         return success(ResponseCode.CREATED, "User created successfully",userResponse);
     }
 
@@ -42,5 +42,7 @@ public class UserController extends AppController {
         likeService.saveLikedPost(id);
         return success(ResponseCode.CREATED, "Liked Post Saved successfully");
     }
+
+
 
 }

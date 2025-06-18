@@ -20,6 +20,7 @@ public class MopixExpection extends Exception{
         super(message);
         this.errorCode = code;
         this.fields = fields;
+        this.exception= new RuntimeException(message);
     }
 
     public MopixExpection(Exception exception) {

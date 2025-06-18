@@ -46,6 +46,7 @@ public class UserServiceImpl implements UserService {
                 .middlename(userCreateRequest.getMiddlename())
                 .lastname(userCreateRequest.getLastname())
                 .password(passwordEncoder.encode(userCreateRequest.getPassword()))
+                .phone(userCreateRequest.getPhone())
                 .build();
         userRepo.save(userEntity);
 
@@ -59,12 +60,13 @@ public class UserServiceImpl implements UserService {
             }
             passionRepo.saveAll(passionList);
         }
+
     }
 
     @Override
-    public UserResponse getUser() {
+    public UserResponse getUser(Long id) {
 
-        Optional<UserEntity> userEntity = userRepo.findById(Long.valueOf(2));
+        Optional<UserEntity> userEntity = userRepo.findById(Long.valueOf(id));
         UserEntity user = userEntity.get();
 
         UserResponse userResponse = UserResponse.builder()
