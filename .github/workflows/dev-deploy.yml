@@ -24,8 +24,7 @@ jobs:
         id: login-ecr
         run: |
           aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | \
-          sudo docker login --username AWS --password-stdin 941377157856.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
-
+          docker login --username AWS --password-stdin 941377157856.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
       - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
@@ -45,7 +44,6 @@ jobs:
           docker push $IMAGE_URI:$COMMIT_SHA
           
           echo "IMAGE_TAG=$COMMIT_SHA" >> $GITHUB_ENV
-
       - name: Create PEM file
         run: |
           echo "$PEM_FILE" > dev-key.pem
@@ -55,26 +53,21 @@ jobs:
 
       - name: SSH and Deploy on EC2
         run: |
-          ssh -i dev-key.pem -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} << EOF
+          ssh -i dev-key.pem -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
             echo "Logged into EC2"
-
             IMAGE_URI=941377157856.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_NAME }}
             TAG=${{ env.IMAGE_TAG }}
-
             # Login to ECR
-            aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | sudo docker login --username AWS --password-stdin 941377157856.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+            aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | \
+            docker login --username AWS --password-stdin \$IMAGE_URI
             # Stop and remove existing container
             sudo docker stop app || true
             sudo docker rm app || true
-
             # Remove old image (optional safety)
-            sudo docker -f rmi \$IMAGE_URI:latest || true
-            sudo docker -f rmi \$IMAGE_URI:\$TAG || true
-
+            sudo docker rmi \$IMAGE_URI:latest || true
+            sudo docker rmi \$IMAGE_URI:\$TAG || true
             # Pull the latest by tag
             sudo docker pull \$IMAGE_URI:\$TAG
-
             # Run container
             sudo docker run -d --name app -p 80:8080 \$IMAGE_URI:\$TAG
           EOF
-
