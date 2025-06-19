@@ -72,6 +72,8 @@ jobs:
             sudo docker -f rmi \$IMAGE_URI:\$TAG || true
 
             # Pull the latest by tag
+            aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin 941377157856.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+            # Stop and remove existing container
             sudo docker pull \$IMAGE_URI:\$TAG
 
             # Run container
