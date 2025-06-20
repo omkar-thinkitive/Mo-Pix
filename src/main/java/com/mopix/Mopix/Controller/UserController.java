@@ -31,6 +31,12 @@ public class UserController extends AppController {
         return success(ResponseCode.CREATED, "User created successfully");
     }
 
+    @PostMapping("/save-user")
+    ResponseEntity<Response> savePassion(@RequestBody UserCreateRequest userCreateRequest) throws MopixExpection {
+        userService.savePassion(userCreateRequest);
+        return success(ResponseCode.CREATED, "User created successfully");
+    }
+
     @GetMapping("/id/{id}")
     ResponseEntity<Response> getUser(@RequestParam Long id) throws MopixExpection{
         UserResponse userResponse =  userService.getUser(id);

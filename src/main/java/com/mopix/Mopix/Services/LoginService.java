@@ -7,4 +7,6 @@ public interface LoginService {
     String signUpWithGoogle(String code);
 
     String signUpWithGitHub(String code);
+
+    String signUpWithFacebook(String code);
 }

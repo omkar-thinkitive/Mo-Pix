@@ -78,4 +78,22 @@ public class UserServiceImpl implements UserService {
 
         return userResponse;
     }
+
+    @Override
+    public void savePassion(UserCreateRequest userCreateRequest) {
+
+        UserEntity userEntity = userRepo.findByUserName(userCreateRequest.getUserName());
+
+        if(userCreateRequest.getPassionList() != null){
+            PassionEntity passion = new PassionEntity();
+            List<PassionEntity> passionList = new ArrayList<>();
+
+            List<Passion> list = userCreateRequest.getPassionList();
+            for(Passion it: list){
+                passionList.add(new PassionEntity(userEntity,it));
+            }
+            passionRepo.saveAll(passionList);
+        }
+
+    }
 }

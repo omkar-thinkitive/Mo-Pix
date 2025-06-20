@@ -62,4 +62,11 @@ public class LoginController extends AppController{
         String token = loginService.signUpWithGitHub(code);
         return ResponseEntity.ok(Map.of("token", token));
     }
+
+    @GetMapping("/login-facebook")
+    public ResponseEntity<Map<String, String>> loginFacebook(@RequestParam("code") String code) {
+        String token = loginService.signUpWithFacebook(code);
+        return ResponseEntity.ok(Map.of("token", token));
+    }
+
 }

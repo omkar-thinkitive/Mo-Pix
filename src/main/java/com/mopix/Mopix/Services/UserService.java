@@ -11,4 +11,6 @@ public interface UserService {
      void saveUser(UserCreateRequest userCreateRequest) throws MopixExpection;
 
      UserResponse getUser(Long id);
+
+     void savePassion(UserCreateRequest userCreateRequest);
 }
