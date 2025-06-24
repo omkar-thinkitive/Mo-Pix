@@ -1,8 +1,8 @@
 package com.mopix.Mopix.Dtos.Request;
 
+import com.mopix.Mopix.Dtos.enums.MediaType;
 import com.mopix.Mopix.Entity.UserEntity;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Data;
 
@@ -15,5 +15,8 @@ public class PostCreateRequest {
     private String caption;
     private UUID uuid;
     private String title;
-    private String fileKey;
+    private String mediaUrl;
+    private MediaType mediaType;
+    private String description;
+    private boolean isNFT;
 }

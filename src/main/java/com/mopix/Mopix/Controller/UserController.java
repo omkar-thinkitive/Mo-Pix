@@ -2,6 +2,7 @@ package com.mopix.Mopix.Controller;
 
 
 import com.mopix.Mopix.Dtos.Request.CommentRequest;
+import com.mopix.Mopix.Dtos.Request.FollowRequest;
 import com.mopix.Mopix.Dtos.Request.UserCreateRequest;
 import com.mopix.Mopix.Dtos.Response.UserResponse;
 import com.mopix.Mopix.Services.CommentService;
@@ -31,6 +32,12 @@ public class UserController extends AppController {
         return success(ResponseCode.CREATED, "User created successfully");
     }
 
+    @PostMapping("/save-user")
+    ResponseEntity<Response> savePassion(@RequestBody UserCreateRequest userCreateRequest) throws MopixExpection {
+        userService.savePassion(userCreateRequest);
+        return success(ResponseCode.CREATED, "User created successfully");
+    }
+
     @GetMapping("/id/{id}")
     ResponseEntity<Response> getUser(@RequestParam Long id) throws MopixExpection{
         UserResponse userResponse =  userService.getUser(id);
@@ -43,6 +50,9 @@ public class UserController extends AppController {
         return success(ResponseCode.CREATED, "Liked Post Saved successfully");
     }
 
-
-
+    @PostMapping("/follow")
+    ResponseEntity<Response> saveFollower(@RequestBody FollowRequest followRequest) throws MopixExpection{
+        userService.saveFollower(followRequest);
+        return success(ResponseCode.CREATED, "Liked Post Saved successfully");
+    }
 }

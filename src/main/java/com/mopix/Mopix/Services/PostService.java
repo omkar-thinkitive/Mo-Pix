@@ -4,7 +4,9 @@ import com.mopix.Mopix.Dtos.Request.PostCreateRequest;
 import com.mopix.Mopix.utils.Expection.MopixExpection;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+
 @Service
 public interface PostService {
-    void savePost(PostCreateRequest postCreateRequest) throws MopixExpection;
+    String savePost(PostCreateRequest postCreateRequest) throws MopixExpection, IOException;
 }

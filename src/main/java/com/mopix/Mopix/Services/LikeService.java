@@ -7,4 +7,6 @@ import org.springframework.stereotype.Service;
 @Service
 public interface LikeService {
     void saveLikedPost(Long id) throws MopixExpection;
+
+    void saveFollower(String username);
 }
