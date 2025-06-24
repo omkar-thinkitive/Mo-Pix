@@ -42,5 +42,16 @@ public class UserEntity {
     @Enumerated(EnumType.STRING)
     private UserRoles userRole;
 
+    @Column(name = "follower_count")
+    private Long followerCount;
+    @Column(name = "following_count")
+    private Long followingCount;
+
+    @Column(name = "like_count")
+    private Long likeCount;
+
+    @Column(columnDefinition = "TEXT")
+    private String profileUrl;
+
     private boolean deleted = false;
 }

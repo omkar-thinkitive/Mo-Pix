@@ -54,4 +54,9 @@ public class LikeServiceImpl implements LikeService {
         likeEntity.setLikedAt(Instant.now());
         likeRepo.save(likeEntity);
     }
+
+    @Override
+    public void saveFollower(String username) {
+
+    }
 }

@@ -9,4 +9,8 @@ public interface LoginService {
     String signUpWithGitHub(String code);
 
     String signUpWithFacebook(String code);
+
+    String signInWithApple(String code);
+
+    String googleLoginForIos(String code);
 }

@@ -57,6 +57,12 @@ public class LoginController extends AppController{
         return ResponseEntity.ok(Map.of("token", jwt));
     }
 
+    @GetMapping("/login/callback-google-ios")
+    public ResponseEntity<Map<String, String>> googleLoginForIos(@RequestParam("code") String code) {
+        String jwt = loginService.googleLoginForIos(code);
+        return ResponseEntity.ok(Map.of("token", jwt));
+    }
+
     @GetMapping("/login-github")
     public ResponseEntity<Map<String, String>> loginGithub(@RequestParam("code") String code) {
         String token = loginService.signUpWithGitHub(code);
@@ -68,5 +74,12 @@ public class LoginController extends AppController{
         String token = loginService.signUpWithFacebook(code);
         return ResponseEntity.ok(Map.of("token", token));
     }
+
+    @PostMapping("/login-apple")
+    public ResponseEntity<Map<String, String>> loginWithApple(@RequestParam("code") String code) {
+        String token = loginService.signInWithApple(code);
+        return ResponseEntity.ok(Map.of("token", token));
+    }
+
 
 }

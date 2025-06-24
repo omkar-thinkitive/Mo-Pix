@@ -1,11 +1,14 @@
 package com.mopix.Mopix.Services.ServiceImpl;
 
+import com.mopix.Mopix.Dtos.Request.FollowRequest;
 import com.mopix.Mopix.Dtos.Request.UserCreateRequest;
 import com.mopix.Mopix.Dtos.Response.UserResponse;
 import com.mopix.Mopix.Dtos.enums.Passion;
 import com.mopix.Mopix.Dtos.enums.ResponseCode;
+import com.mopix.Mopix.Entity.FollowerEntity;
 import com.mopix.Mopix.Entity.PassionEntity;
 import com.mopix.Mopix.Entity.UserEntity;
+import com.mopix.Mopix.Repository.FollowerRepo;
 import com.mopix.Mopix.Repository.PassionRepo;
 import com.mopix.Mopix.Repository.UserRepo;
 import com.mopix.Mopix.Services.UserService;
@@ -14,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -30,6 +34,8 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private PassionRepo passionRepo;
+    @Autowired
+    private FollowerRepo followerRepo;
 
     @Override
     public void saveUser(UserCreateRequest userCreateRequest)throws MopixExpection {
@@ -96,4 +102,34 @@ public class UserServiceImpl implements UserService {
         }
 
     }
+
+    @Override
+    public void saveFollower(FollowRequest followRequest) {
+
+        UserEntity user1 = userRepo.findByUserName(followRequest.getCurrentUser());
+        UserEntity user2 = userRepo.findByUserName(followRequest.getFollowerUser());
+
+        FollowerEntity followerEntity = new FollowerEntity();
+        followerEntity.setFollower(user1);
+        followerEntity.setFollowing(user2);
+        followerEntity.setUpdatedAt(Instant.now());
+        followerRepo.save(followerEntity);
+
+    }
+
+    public UserResponse getUser1(String username) {
+
+        UserEntity user = userRepo.findByUserName(username);
+
+        UserResponse userResponse = UserResponse.builder()
+                .userName(user.getUserName())
+                .firstname(user.getFirstname())
+                .lastname(user.getLastname())
+                .password(user.getPassword())
+                .build();
+
+        return userResponse;
+    }
+
+
 }
