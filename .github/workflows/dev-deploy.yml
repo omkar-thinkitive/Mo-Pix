@@ -4,12 +4,6 @@ on:
   push:
     branches: ["development"]
 
-env:
-  AWS_REGION: eu-north-1
-  ECR_REGISTRY: 941377157856.dkr.ecr.eu-north-1.amazonaws.com
-  ECR_REPOSITORY: dv-mopix-ecr-repo
-  CONTAINER_NAME: "app"
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -44,11 +38,11 @@ jobs:
         run: |
           COMMIT_SHA=$(git rev-parse --short HEAD)
           IMAGE_URI=941377157856.dkr.ecr.eu-north-1.amazonaws.com/dv-mopix-ecr-repo
-          
+
           docker build --no-cache -t $IMAGE_URI:$COMMIT_SHA -t $IMAGE_URI:latest .
           docker push $IMAGE_URI:$COMMIT_SHA
           docker push $IMAGE_URI:latest
-          
+
           echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
           echo "IMAGE_TAG=$COMMIT_SHA" >> $GITHUB_ENV
 
@@ -58,22 +52,21 @@ jobs:
           chmod 400 dev-key.pem
 
       - name: Deploy to EC2
+        env:
+          IMAGE_URI: ${{ env.IMAGE_URI }}
+          IMAGE_TAG: ${{ env.IMAGE_TAG }}
         run: |
-          ssh -i dev-key.pem -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
+          ssh -i dev-key.pem -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} << EOF
             set -e
-            
-            # Stop and remove old container if exists
+
+            echo "Pulling Docker image: $IMAGE_URI:$IMAGE_TAG"
+
             sudo docker stop app || true
             sudo docker rm app || true
-            
-            # Login to ECR
+
             aws ecr get-login-password --region eu-north-1 | \
               sudo docker login --username AWS --password-stdin 941377157856.dkr.ecr.eu-north-1.amazonaws.com
-            
-            # Pull and run the new container
+
             sudo docker pull $IMAGE_URI:$IMAGE_TAG
             sudo docker run -d --name app -p 80:8080 $IMAGE_URI:$IMAGE_TAG
           EOF
-          env:
-            IMAGE_URI: 941377157856.dkr.ecr.eu-north-1.amazonaws.com/dv-mopix-ecr-repo
-            IMAGE_TAG: ${{ env.IMAGE_TAG }}
