@@ -41,7 +41,7 @@ public class UserController extends AppController {
     @GetMapping("/id/{id}")
     ResponseEntity<Response> getUser(@RequestParam Long id) throws MopixExpection{
         UserResponse userResponse =  userService.getUser(id);
-        return success(ResponseCode.CREATED, "User created successfully",userResponse);
+        return success(ResponseCode.CREATED, "User fetch successfully",userResponse);
     }
 
     @PostMapping("/like-post/{id}")
