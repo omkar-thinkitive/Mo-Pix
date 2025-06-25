@@ -7,7 +7,8 @@ on:
 env:
   AWS_REGION: ${{ secrets.AWS_REGION }}
   ECR_REGISTRY: 941377157856.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
-  ECR_REPOSITORY: ${{ secrets.ECR_NAME | lower }}  # Ensure lowercase repository name
+  # Removed the | lower filter from here
+  ECR_REPOSITORY: ${{ secrets.ECR_NAME }}
   CONTAINER_NAME: "app"
 
 jobs:
@@ -46,10 +47,8 @@ jobs:
         run: |
           COMMIT_SHA=$(git rev-parse --short HEAD)
           IMAGE_TAG=$COMMIT_SHA
-          IMAGE_URI=$ECR_REGISTRY/$ECR_REPOSITORY
-          
-          # Ensure all characters are lowercase
-          IMAGE_URI=$(echo "$IMAGE_URI" | tr '[:upper:]' '[:lower:]')
+          # Convert to lowercase here instead
+          IMAGE_URI=$(echo "$ECR_REGISTRY/$ECR_REPOSITORY" | tr '[:upper:]' '[:lower:]')
           
           docker build --no-cache -t $IMAGE_URI:$IMAGE_TAG -t $IMAGE_URI:latest .
           docker push $IMAGE_URI:$IMAGE_TAG
@@ -90,7 +89,7 @@ jobs:
             # Pull the new image
             sudo docker pull "$IMAGE_FULL"
             
-            # Run the container (fixed command)
+            # Run the container
             sudo docker run -d \
               --name $CONTAINER_NAME \
               -p 80:8080 \
