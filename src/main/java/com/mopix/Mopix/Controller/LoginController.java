@@ -52,34 +52,32 @@ public class LoginController extends AppController{
 //    }
 
     @GetMapping("/login/callback-google")
-    public ResponseEntity<Map<String, String>> googleLogin(@RequestParam("code") String code) {
+    public ResponseEntity<Response> googleLogin(@RequestParam("code") String code) {
         String jwt = loginService.signUpWithGoogle(code);
-        return ResponseEntity.ok(Map.of("token", jwt));
+        return success(ResponseCode.SUCCESS, "Login successful", jwt);
     }
 
     @GetMapping("/login/callback-google-ios")
-    public ResponseEntity<Map<String, String>> googleLoginForIos(@RequestParam("code") String code) {
+    public ResponseEntity<Response> googleLoginForIos(@RequestParam("code") String code) {
         String jwt = loginService.googleLoginForIos(code);
-        return ResponseEntity.ok(Map.of("token", jwt));
+        return success(ResponseCode.SUCCESS, "Login successful", jwt);
     }
 
     @GetMapping("/login-github")
-    public ResponseEntity<Map<String, String>> loginGithub(@RequestParam("code") String code) {
+    public ResponseEntity<Response> loginGithub(@RequestParam("code") String code) {
         String token = loginService.signUpWithGitHub(code);
-        return ResponseEntity.ok(Map.of("token", token));
+        return success(ResponseCode.SUCCESS, "Login successful", token);
     }
 
     @GetMapping("/login-facebook")
-    public ResponseEntity<Map<String, String>> loginFacebook(@RequestParam("code") String code) {
+    public ResponseEntity<Response> loginFacebook(@RequestParam("code") String code) {
         String token = loginService.signUpWithFacebook(code);
-        return ResponseEntity.ok(Map.of("token", token));
+        return success(ResponseCode.SUCCESS, "Login successful", token);
     }
 
     @PostMapping("/login-apple")
-    public ResponseEntity<Map<String, String>> loginWithApple(@RequestParam("code") String code) {
+    public ResponseEntity<Response> loginWithApple(@RequestParam("code") String code) {
         String token = loginService.signInWithApple(code);
-        return ResponseEntity.ok(Map.of("token", token));
+        return success(ResponseCode.SUCCESS, "Login successful", token);
     }
-
-
 }

@@ -37,7 +37,6 @@ public class PostEntity extends Base{
     private String title;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private MediaType mediaType;
 
     @Column(columnDefinition = "TEXT")
