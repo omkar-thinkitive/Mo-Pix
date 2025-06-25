@@ -2,12 +2,12 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ "development" ]
+    branches: ["development"]
 
 env:
-  AWS_REGION: ${{ secrets.AWS_REGION }}
-  ECR_REGISTRY: 941377157856.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
-  ECR_REPOSITORY: ${{ secrets.ECR_NAME }}
+  AWS_REGION: eu-north-1
+  ECR_REGISTRY: 941377157856.dkr.ecr.eu-north-1.amazonaws.com
+  ECR_REPOSITORY: dv-mopix-ecr-repo
   CONTAINER_NAME: "app"
 
 jobs:
@@ -24,13 +24,12 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          aws-region: eu-north-1
 
       - name: Login to Amazon ECR
-        id: login-ecr
         run: |
-          aws ecr get-login-password --region $AWS_REGION | \
-          docker login --username AWS --password-stdin $ECR_REGISTRY
+          aws ecr get-login-password --region eu-north-1 | \
+          docker login --username AWS --password-stdin 941377157856.dkr.ecr.eu-north-1.amazonaws.com
 
       - name: Set up JDK 17
         uses: actions/setup-java@v3
@@ -42,21 +41,16 @@ jobs:
         run: mvn clean package -DskipTests
 
       - name: Build and Push Docker image
-        id: build-image
         run: |
           COMMIT_SHA=$(git rev-parse --short HEAD)
-          IMAGE_TAG=$COMMIT_SHA
-          IMAGE_URI=$ECR_REGISTRY/$ECR_REPOSITORY
+          IMAGE_URI=941377157856.dkr.ecr.eu-north-1.amazonaws.com/dv-mopix-ecr-repo
           
-          # Ensure lowercase image URI
-          IMAGE_URI=$(echo "$IMAGE_URI" | tr '[:upper:]' '[:lower:]')
-          
-          docker build --no-cache -t $IMAGE_URI:$IMAGE_TAG -t $IMAGE_URI:latest .
-          docker push $IMAGE_URI:$IMAGE_TAG
+          docker build --no-cache -t $IMAGE_URI:$COMMIT_SHA -t $IMAGE_URI:latest .
+          docker push $IMAGE_URI:$COMMIT_SHA
           docker push $IMAGE_URI:latest
           
           echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
-          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+          echo "IMAGE_TAG=$COMMIT_SHA" >> $GITHUB_ENV
 
       - name: Create PEM file
         run: |
@@ -65,35 +59,21 @@ jobs:
 
       - name: Deploy to EC2
         run: |
-          # Generate the ECR login command
-          ECR_LOGIN_CMD=$(aws ecr get-login-password --region $AWS_REGION | \
-            docker login --username AWS --password-stdin $ECR_REGISTRY)
-          
           ssh -i dev-key.pem -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
-            set -e  # Exit on error
+            set -e
             
-            # Export AWS credentials
-            export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-            export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-            export AWS_REGION=$AWS_REGION
-            
-            # Clean up previous container if it exists
-            if sudo docker ps -a | grep -q app; then
-              sudo docker stop app || true
-              sudo docker rm app || true
-            fi
+            # Stop and remove old container if exists
+            sudo docker stop app || true
+            sudo docker rm app || true
             
             # Login to ECR
-            aws ecr get-login-password --region $AWS_REGION | \
-              sudo docker login --username AWS --password-stdin $IMAGE_URI
+            aws ecr get-login-password --region eu-north-1 | \
+              sudo docker login --username AWS --password-stdin 941377157856.dkr.ecr.eu-north-1.amazonaws.com
             
             # Pull and run the new container
             sudo docker pull $IMAGE_URI:$IMAGE_TAG
             sudo docker run -d --name app -p 80:8080 $IMAGE_URI:$IMAGE_TAG
           EOF
           env:
-            AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-            AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-            AWS_REGION: ${{ secrets.AWS_REGION }}
-            IMAGE_URI: ${{ env.IMAGE_URI }}
+            IMAGE_URI: 941377157856.dkr.ecr.eu-north-1.amazonaws.com/dv-mopix-ecr-repo
             IMAGE_TAG: ${{ env.IMAGE_TAG }}
