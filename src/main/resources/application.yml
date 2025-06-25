@@ -46,12 +46,12 @@ spring:
 #  paths-to-match: /api/master/v1/**
 
 
-#aws:
-#  region: ap-south-1
-#  access-key: YOUR_AWS_ACCESS_KEY
-#  secret-key: YOUR_AWS_SECRET_KEY
-#  s3:
-#    bucket-name: your-bucket-name
+aws:
+  region: ap-south-1
+  access-key: YOUR_AWS_ACCESS_KEY
+  secret-key: YOUR_AWS_SECRET_KEY
+  s3:
+    bucket-name: your-bucket-name
 
 
 
