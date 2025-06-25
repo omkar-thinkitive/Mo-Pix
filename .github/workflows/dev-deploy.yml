@@ -45,37 +45,55 @@ jobs:
 
       - name: Create PEM file
         run: |
-          echo "$PEM_FILE" > dev-key.pem
+          echo "${{ secrets.EC2_KEY }}" > dev-key.pem
           chmod 400 dev-key.pem
-        env:
-          PEM_FILE: ${{ secrets.EC2_KEY }}
 
-      - name: SSH and Deploy on EC2
+      - name: Deploy to EC2
         run: |
-          ssh -i dev-key.pem -tt -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
-            echo "✅ Logged into EC2"
-
-            export AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}"
-            export AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}"
-            export AWS_REGION="${{ secrets.AWS_REGION }}"
-            IMAGE_URI="941377157856.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_NAME }}"
-            TAG="${{ env.IMAGE_TAG }}"
-
-            echo "🔐 Logging into ECR from EC2..."
-            aws ecr get-login-password --region $AWS_REGION | \
-            docker login --username AWS --password-stdin $IMAGE_URI
-
-            echo "🛑 Stopping existing container..."
-            docker stop app || true
-            docker rm app || true
-
-            echo "🧹 Cleaning up old images..."
-            docker rmi -f $IMAGE_URI:latest || true
-            docker rmi -f $IMAGE_URI:$TAG || true
-
-            echo "⬇️ Pulling new image..."
-            docker pull $IMAGE_URI:$TAG
-
-            echo "🚀 Starting new container..."
-            docker run -d --name app -p 80:8080 $IMAGE_URI:$TAG
-          EOF
+          # Generate ECR login command that works with sudo
+          ECR_LOGIN_CMD=$(aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | \
+            docker login --username AWS --password-stdin 941377157856.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com | \
+            sed 's/docker/sudo docker/')
+          
+          # Create deployment script
+          cat > deploy.sh << 'SCRIPT'
+          #!/bin/bash
+          set -e
+          
+          # Export AWS credentials
+          export AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID"
+          export AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY"
+          export AWS_REGION="$AWS_REGION"
+          
+          IMAGE_URI="941377157856.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_NAME"
+          TAG="$IMAGE_TAG"
+          
+          # Login to ECR
+          $ECR_LOGIN_CMD
+          
+          # Stop and remove old container
+          sudo docker stop app || true
+          sudo docker rm app || true
+          
+          # Pull new image
+          sudo docker pull $IMAGE_URI:$TAG
+          
+          # Run new container
+          sudo docker run -d \
+            --name app \
+            -p 80:8080 \
+            --restart unless-stopped \
+            $IMAGE_URI:$TAG
+          SCRIPT
+          
+          # Copy and execute script on EC2
+          scp -i dev-key.pem -o StrictHostKeyChecking=no deploy.sh ubuntu@${{ secrets.EC2_HOST }}:~/deploy.sh
+          ssh -i dev-key.pem -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} \
+            "chmod +x deploy.sh && \
+            AWS_ACCESS_KEY_ID='${{ secrets.AWS_ACCESS_KEY_ID }}' \
+            AWS_SECRET_ACCESS_KEY='${{ secrets.AWS_SECRET_ACCESS_KEY }}' \
+            AWS_REGION='${{ secrets.AWS_REGION }}' \
+            ECR_NAME='${{ secrets.ECR_NAME }}' \
+            IMAGE_TAG='${{ env.IMAGE_TAG }}' \
+            ECR_LOGIN_CMD='$ECR_LOGIN_CMD' \
+            ./deploy.sh"
