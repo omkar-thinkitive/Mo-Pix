@@ -7,7 +7,7 @@ on:
 env:
   AWS_REGION: ${{ secrets.AWS_REGION }}
   ECR_REGISTRY: 941377157856.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
-  ECR_REPOSITORY: ${{ secrets.ECR_NAME }}
+  ECR_REPOSITORY: ${{ secrets.ECR_NAME | lower }}  # Ensure lowercase repository name
   CONTAINER_NAME: "app"
 
 jobs:
@@ -48,6 +48,9 @@ jobs:
           IMAGE_TAG=$COMMIT_SHA
           IMAGE_URI=$ECR_REGISTRY/$ECR_REPOSITORY
           
+          # Ensure all characters are lowercase
+          IMAGE_URI=$(echo "$IMAGE_URI" | tr '[:upper:]' '[:lower:]')
+          
           docker build --no-cache -t $IMAGE_URI:$IMAGE_TAG -t $IMAGE_URI:latest .
           docker push $IMAGE_URI:$IMAGE_TAG
           docker push $IMAGE_URI:latest
@@ -71,7 +74,7 @@ jobs:
             export AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
             export AWS_REGION=${{ secrets.AWS_REGION }}
             
-            # Define image details
+            # Define image details from environment
             IMAGE_URI=${{ env.IMAGE_URI }}
             IMAGE_TAG=${{ env.IMAGE_TAG }}
             IMAGE_FULL="$IMAGE_URI:$IMAGE_TAG"
@@ -80,20 +83,19 @@ jobs:
             sudo docker stop $CONTAINER_NAME || true
             sudo docker rm $CONTAINER_NAME || true
             
-            # Remove old images to save space (optional)
-            sudo docker rmi $IMAGE_URI:latest || true
-            sudo docker rmi $IMAGE_FULL || true
-            
             # Login to ECR (fresh login each time)
             aws ecr get-login-password --region $AWS_REGION | \
             sudo docker login --username AWS --password-stdin $IMAGE_URI
             
             # Pull the new image
-            sudo docker pull $IMAGE_FULL
+            sudo docker pull "$IMAGE_FULL"
             
-            # Run the container
-            sudo docker run -d --name app -p 80:8080 \$IMAGE_URI:\$TAG
-
+            # Run the container (fixed command)
+            sudo docker run -d \
+              --name $CONTAINER_NAME \
+              -p 80:8080 \
+              --restart unless-stopped \
+              "$IMAGE_FULL"
               
             # Clean up unused images
             sudo docker image prune -af
