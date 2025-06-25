@@ -4,6 +4,12 @@ on:
   push:
     branches: [ "development" ]
 
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  ECR_REGISTRY: 941377157856.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+  ECR_REPOSITORY: ${{ secrets.ECR_NAME }}
+  CONTAINER_NAME: "app"
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -21,9 +27,11 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Login to Amazon ECR
+        id: login-ecr
         run: |
-          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | \
-          docker login --username AWS --password-stdin 941377157856.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+          aws ecr get-login-password --region $AWS_REGION | \
+          docker login --username AWS --password-stdin $ECR_REGISTRY
+
       - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
@@ -34,47 +42,62 @@ jobs:
         run: mvn clean package -DskipTests
 
       - name: Build and Push Docker image
+        id: build-image
         run: |
           COMMIT_SHA=$(git rev-parse --short HEAD)
-          IMAGE_URI=941377157856.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_NAME }}
-          docker build --no-cache -t $IMAGE_URI:latest -t $IMAGE_URI:$COMMIT_SHA .
+          IMAGE_TAG=$COMMIT_SHA
+          IMAGE_URI=$ECR_REGISTRY/$ECR_REPOSITORY
+          
+          docker build --no-cache -t $IMAGE_URI:$IMAGE_TAG -t $IMAGE_URI:latest .
+          docker push $IMAGE_URI:$IMAGE_TAG
           docker push $IMAGE_URI:latest
-          docker push $IMAGE_URI:$COMMIT_SHA
-          echo "IMAGE_TAG=$COMMIT_SHA" >> $GITHUB_ENV
+          
+          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+          echo "IMAGE_FULL=$IMAGE_URI:$IMAGE_TAG" >> $GITHUB_ENV
+
       - name: Create PEM file
         run: |
-          echo "$PEM_FILE" > dev-key.pem
+          echo "${{ secrets.EC2_KEY }}" > dev-key.pem
           chmod 400 dev-key.pem
-        env:
-          PEM_FILE: ${{ secrets.EC2_KEY }}
 
-      - name: SSH and Deploy on EC2
+      - name: Deploy to EC2
         run: |
-          # 🔧 CHANGED: Removed surrounding single quotes so GitHub interpolates secrets correctly
-          ssh -i dev-key.pem -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} << EOF
-            echo "✅ Logged into EC2"
-            # ✅ ADDED: Set AWS credentials inside EC2 to allow ECR login
+          ssh -i dev-key.pem -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} << 'EOSSH'
+            set -e  # Exit on error
+            
+            # Export AWS credentials
             export AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
             export AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
             export AWS_REGION=${{ secrets.AWS_REGION }}
-            # 🔧 CHANGED: Interpolated values using GitHub secrets for IMAGE_URI and TAG
-            IMAGE_URI=941377157856.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_NAME }}
-            TAG=${{ env.IMAGE_TAG }}
-            echo "🔐 Logging into ECR (inside EC2)..."
-            # ✅ ADDED: Fresh ECR login inside EC2 to prevent token expiry issues
-            rm ~/.docker/config.json
-            aws ecr get-login-password --region \$AWS_REGION | \
-            docker login --username AWS --password-stdin \$IMAGE_URI
-            echo "$IMAGE_URI"
-            echo $IMAGE_URI
-            sudo docker stop app || true
-            sudo docker rm app || true
-            echo "🧹 Removing old images..."
-            sudo docker rmi -f \$IMAGE_URI:latest || true
-            sudo docker rmi -f \$IMAGE_URI:\$TAG || true
-            echo "⬇️ Pulling latest image..."
-            echo \$IMAGE_URI:\$TAG
-            sudo docker pull \$IMAGE_URI:\$TAG
-            echo "🚀 Running container..."
-            sudo docker run -d --name app -p 80:8080 \$IMAGE_URI:\$TAG
-          EOF
+            
+            # Define image details
+            IMAGE_URI=${{ env.IMAGE_URI }}
+            IMAGE_TAG=${{ env.IMAGE_TAG }}
+            IMAGE_FULL="$IMAGE_URI:$IMAGE_TAG"
+            
+            # Clean up previous container
+            sudo docker stop $CONTAINER_NAME || true
+            sudo docker rm $CONTAINER_NAME || true
+            
+            # Remove old images to save space (optional)
+            sudo docker rmi $IMAGE_URI:latest || true
+            sudo docker rmi $IMAGE_FULL || true
+            
+            # Login to ECR (fresh login each time)
+            aws ecr get-login-password --region $AWS_REGION | \
+            sudo docker login --username AWS --password-stdin $IMAGE_URI
+            
+            # Pull the new image
+            sudo docker pull $IMAGE_FULL
+            
+            # Run the container
+            sudo docker run -d \
+              --name $CONTAINER_NAME \
+              -p 80:8080 \
+              --restart unless-stopped \
+              $IMAGE_FULL
+              
+            # Clean up unused images
+            sudo docker image prune -af
+          EOSSH
