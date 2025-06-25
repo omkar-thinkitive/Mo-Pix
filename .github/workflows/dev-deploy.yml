@@ -65,29 +65,27 @@ jobs:
 
       - name: Deploy to EC2
         run: |
-          ssh -i dev-key.pem -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
+          # Generate ECR login command that works non-interactively
+          ECR_LOGIN_CMD=$(aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | \
+            docker login --username AWS --password-stdin ${{ env.IMAGE_URI }} | \
+            sed 's/docker/sudo docker/')
+          
+          ssh -i dev-key.pem -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} << EOF
             set -e  # Exit on error
             
             # Export AWS credentials
-            export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-            export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-            export AWS_REGION=$AWS_REGION
-            
-            # Login to ECR (fresh login each time)
-            aws ecr get-login-password --region $AWS_REGION | \
-            sudo docker login --username AWS --password-stdin $IMAGE_URI
+            export AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
+            export AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+            export AWS_REGION=${{ secrets.AWS_REGION }}
             
             # Stop and remove old container if exists
             sudo docker stop app || true
             sudo docker rm app || true
             
-            # Pull and run new container using your preferred command
-            sudo docker pull $IMAGE_URI:$IMAGE_TAG
-            sudo docker run -d --name app -p 80:8080 $IMAGE_URI:$IMAGE_TAG
+            # Login to ECR non-interactively
+            $ECR_LOGIN_CMD
+            
+            # Pull and run new container
+            sudo docker pull ${{ env.IMAGE_URI }}:${{ env.IMAGE_TAG }}
+            sudo docker run -d --name app -p 80:8080 ${{ env.IMAGE_URI }}:${{ env.IMAGE_TAG }}
           EOF
-          env:
-            AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-            AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-            AWS_REGION: ${{ secrets.AWS_REGION }}
-            IMAGE_URI: ${{ env.IMAGE_URI }}
-            IMAGE_TAG: ${{ env.IMAGE_TAG }}
