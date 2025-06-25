@@ -53,20 +53,21 @@ jobs:
 
       - name: Deploy to EC2
         run: |
-          ssh -i dev-key.pem -t -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} \
-          "IMAGE_URI=${{ env.IMAGE_URI }} IMAGE_TAG=${{ env.IMAGE_TAG }} bash -s" << 'EOF'
-            set -e
-            echo "Deploying Docker image: $IMAGE_URI:$IMAGE_TAG"
+          ssh -i dev-key.pem -t -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} "bash -s" <<EOF
+          IMAGE_URI=${{ env.IMAGE_URI }}
+          IMAGE_TAG=${{ env.IMAGE_TAG }}
+          set -e
+          echo "Deploying Docker image: \$IMAGE_URI:\$IMAGE_TAG"
 
-            # Stop and remove existing container if it exists
-            sudo docker ps -q --filter "name=app" | grep -q . && sudo docker stop app || true
-            sudo docker ps -a -q --filter "name=app" | grep -q . && sudo docker rm app || true
+          # Stop and remove existing container if it exists
+          sudo docker ps -q --filter "name=app" | grep -q . && sudo docker stop app || true
+          sudo docker ps -a -q --filter "name=app" | grep -q . && sudo docker rm app || true
 
-            # Authenticate Docker with ECR
-            aws ecr get-login-password --region eu-north-1 | \
-              sudo docker login --username AWS --password-stdin 941377157856.dkr.ecr.eu-north-1.amazonaws.com
+          # Authenticate Docker with ECR
+          aws ecr get-login-password --region eu-north-1 | \
+            sudo docker login --username AWS --password-stdin 941377157856.dkr.ecr.eu-north-1.amazonaws.com
 
-            # Pull and run the new container
-            sudo docker pull $IMAGE_URI:$IMAGE_TAG
-            sudo docker run -d --restart unless-stopped --name app -p 80:8080 $IMAGE_URI:$IMAGE_TAG
-EOF
+          # Pull and run the new container
+          sudo docker pull \$IMAGE_URI:\$IMAGE_TAG
+          sudo docker run -d --restart unless-stopped --name app -p 80:8080 \$IMAGE_URI:\$IMAGE_TAG
+          EOF
