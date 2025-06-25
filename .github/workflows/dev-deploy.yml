@@ -59,14 +59,18 @@ jobs:
           ssh -i dev-key.pem -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} << EOF
             set -e
 
-            echo "Pulling Docker image: $IMAGE_URI:$IMAGE_TAG"
+            echo "Deploying Docker image: \$IMAGE_URI:\$IMAGE_TAG"
 
-            sudo docker stop app || true
-            sudo docker rm app || true
+            # Stop and remove existing container if it exists
+            sudo docker ps -q --filter "name=app" | grep -q . && sudo docker stop app || true
+            sudo docker ps -a -q --filter "name=app" | grep -q . && sudo docker rm app || true
 
+            # Authenticate Docker with ECR
+            rm ~/.docker/config.json
             aws ecr get-login-password --region eu-north-1 | \
               sudo docker login --username AWS --password-stdin 941377157856.dkr.ecr.eu-north-1.amazonaws.com
 
-            sudo docker pull $IMAGE_URI:$IMAGE_TAG
-            sudo docker run -d --name app -p 80:8080 $IMAGE_URI:$IMAGE_TAG
+            # Pull and run the container
+            sudo docker pull \$IMAGE_URI:\$IMAGE_TAG
+            sudo docker run -d --restart unless-stopped --name app -p 80:8080 \$IMAGE_URI:\$IMAGE_TAG
           EOF
