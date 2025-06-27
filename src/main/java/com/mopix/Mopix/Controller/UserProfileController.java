@@ -2,6 +2,7 @@ package com.mopix.Mopix.Controller;
 
 import com.fasterxml.jackson.core.PrettyPrinter;
 import com.mopix.Mopix.Dtos.Request.UserProfileResponse;
+import com.mopix.Mopix.Dtos.Response.UserFeedResponse;
 import com.mopix.Mopix.Dtos.Response.UserFollowResponse;
 import com.mopix.Mopix.Dtos.enums.ResponseCode;
 import com.mopix.Mopix.Services.UserProfileService;
@@ -48,4 +49,17 @@ public class UserProfileController extends AppController{
         Page<UserFollowResponse> userProfileResponse = userProfileService.getUserPosts(username,pageable);
         return success(ResponseCode.SUCCESS, "User fetched successfully",userProfileResponse);
     }
+
+    @GetMapping("/{username}/feed/following")
+    ResponseEntity<Response> getUserFeed(@RequestParam("username") String username,@org.springdoc.core.annotations.ParameterObject Pageable pageable) throws MopixExpection{
+        Page<UserFeedResponse> userFeedResponse = userProfileService.getUserFeed(username,pageable);
+        return success(ResponseCode.SUCCESS, "User fetched successfully",userFeedResponse);
+    }
+
+    @GetMapping("/{username}/feed")
+    ResponseEntity<Response> getUserRandomFeed(@RequestParam("username") String username,@org.springdoc.core.annotations.ParameterObject Pageable pageable) throws MopixExpection{
+        Page<UserFeedResponse> userFeedResponse = userProfileService.getUserRandomFeed(username,pageable);
+        return success(ResponseCode.SUCCESS, "User fetched successfully",userFeedResponse);
+    }
+
 }

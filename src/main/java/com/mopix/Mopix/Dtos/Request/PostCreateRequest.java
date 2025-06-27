@@ -1,11 +1,14 @@
 package com.mopix.Mopix.Dtos.Request;
 
 import com.mopix.Mopix.Dtos.enums.MediaType;
+import com.mopix.Mopix.Entity.HashTag;
 import com.mopix.Mopix.Entity.UserEntity;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Data;
 
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Builder
@@ -19,4 +22,7 @@ public class PostCreateRequest {
     private MediaType mediaType;
     private String description;
     private boolean isNFT;
+
+    Set<String> primaryHashTag;
+    List<String> SecondaryHashTag;
 }

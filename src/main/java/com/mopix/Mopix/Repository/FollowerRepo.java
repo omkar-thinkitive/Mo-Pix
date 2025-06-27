@@ -25,4 +25,10 @@ public interface FollowerRepo extends JpaRepository<FollowerEntity,Long> {
             where u.follower.id = :id
             """)
     Page<UserEntity> findFollowerUsersEntity(@Param("id") Long id, Pageable pageable);
+
+    @Query("""
+            select u.following from FollowerEntity u
+            where u.follower.id = :id
+            """)
+    List<UserEntity> findFollowerUsersEntity(@Param("id") Long id);
 }
