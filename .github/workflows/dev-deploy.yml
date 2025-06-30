@@ -52,33 +52,33 @@ jobs:
 
       - name: SSH and Deploy on EC2
         run: |
-          ssh -i dev-key.pem -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
+          ssh -i dev-key.pem -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} << EOF
             echo "✅ Logged into EC2"
 
-            export AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
-            export AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
-            export AWS_REGION=${{ secrets.AWS_REGION }}
+            export AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}"
+            export AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+            export AWS_REGION="${{ secrets.AWS_REGION }}"
 
-            ECR_DOMAIN=941377157856.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
-            IMAGE_URI=$ECR_DOMAIN/${{ secrets.ECR_NAME }}
-            TAG=${{ env.IMAGE_TAG }}
+            ECR_DOMAIN="941377157856.dkr.ecr.\$AWS_REGION.amazonaws.com"
+            REPO_NAME="${{ secrets.ECR_NAME }}"
+            IMAGE_URI="\$ECR_DOMAIN/\$REPO_NAME"
+            TAG="${{ env.IMAGE_TAG }}"
 
-            echo "🔐 Logging into ECR (inside EC2)..."
-            rm -f ~/.docker/config.json
-            aws ecr get-login-password --region $AWS_REGION | \
-              docker login --username AWS --password-stdin $ECR_DOMAIN
+            echo "🔐 Logging into ECR inside EC2..."
+            aws ecr get-login-password --region \$AWS_REGION | \
+              docker login --username AWS --password-stdin \$ECR_DOMAIN
 
-            echo "🛑 Stopping old container (if exists)..."
+            echo "🛑 Stopping old container..."
             sudo docker stop app || true
             sudo docker rm app || true
 
-            echo "🧹 Removing old Docker images..."
-            sudo docker rmi -f $IMAGE_URI:latest || true
-            sudo docker rmi -f $IMAGE_URI:$TAG || true
+            echo "🧹 Cleaning old images..."
+            sudo docker rmi -f \$IMAGE_URI:latest || true
+            sudo docker rmi -f \$IMAGE_URI:\$TAG || true
 
             echo "⬇️ Pulling new image..."
-            sudo docker pull $IMAGE_URI:$TAG
+            sudo docker pull \$IMAGE_URI:\$TAG
 
             echo "🚀 Running new container..."
-            sudo docker run -d --name app -p 80:8080 $IMAGE_URI:$TAG
-          EOF
+            sudo docker run -d --name app -p 80:8080 \$IMAGE_URI:\$TAG
+            EOF
