@@ -51,6 +51,7 @@ jobs:
       - name: SSH and Deploy on EC2
         run: |
           # 🔧 CHANGED: Removed surrounding single quotes so GitHub interpolates secrets correctly
+          set -x
           ssh -i dev-key.pem -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} << EOF
             echo "✅ Logged into EC2"
             # ✅ ADDED: Set AWS credentials inside EC2 to allow ECR login
@@ -60,6 +61,12 @@ jobs:
             # 🔧 CHANGED: Interpolated values using GitHub secrets for IMAGE_URI and TAG
             IMAGE_URI=941377157856.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_NAME }}
             TAG=${{ env.IMAGE_TAG }}
+            
+            echo "UPDATEDDDD: "
+            echo $IMAGE_URI
+            echo $TAG
+            echo $IMAGE_URI
+          
             echo "🔐 Logging into ECR (inside EC2)..."
             # ✅ ADDED: Fresh ECR login inside EC2 to prevent token expiry issues
             rm ~/.docker/config.json
