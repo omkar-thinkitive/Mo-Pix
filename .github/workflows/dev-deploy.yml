@@ -36,7 +36,8 @@ jobs:
       - name: Build and Push Docker image
         run: |
           COMMIT_SHA=$(git rev-parse --short HEAD)
-          IMAGE_URI=941377157856.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_NAME }}
+          IMAGE_URI=941377157856.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_NAME }}\
+          CONTAINER_NAME=app
           docker build --no-cache -t $IMAGE_URI:latest -t $IMAGE_URI:$COMMIT_SHA .
           docker push $IMAGE_URI:latest
           docker push $IMAGE_URI:$COMMIT_SHA
@@ -66,6 +67,7 @@ jobs:
             echo $IMAGE_URI
             echo $TAG
             echo $IMAGE_URI
+            echo $CONTAINER_NAME
           
             echo "🔐 Logging into ECR (inside EC2)..."
             # ✅ ADDED: Fresh ECR login inside EC2 to prevent token expiry issues
@@ -75,8 +77,8 @@ jobs:
             echo "$IMAGE_URI"
             echo $IMAGE_URI
             sudo docker ps
-            sudo docker stop app || true
-            sudo docker rm app || true
+            sudo docker stop $CONTAINER_NAME || true
+            sudo docker rm $CONTAINER_NAME || true
             echo "🧹 Removing old images..."
             sudo docker rmi -f \$IMAGE_URI:latest || true
             sudo docker rmi -f \$IMAGE_URI:\$TAG || true
@@ -84,5 +86,5 @@ jobs:
             echo \$IMAGE_URI:\$TAG
             sudo docker pull \$IMAGE_URI:\$TAG
             echo "🚀 Running container..."
-            sudo docker run -d --name app -p 80:8080 \$IMAGE_URI:\$TAG
+            sudo docker run -d --name $CONTAINER_NAME -p 80:8080 \$IMAGE_URI:\$TAG
           EOF
