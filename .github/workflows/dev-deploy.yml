@@ -74,6 +74,7 @@ jobs:
             docker login --username AWS --password-stdin \$IMAGE_URI
             echo "$IMAGE_URI"
             echo $IMAGE_URI
+            sudo docker ps
             sudo docker stop app || true
             sudo docker rm app || true
             echo "🧹 Removing old images..."
