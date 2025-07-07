@@ -23,8 +23,9 @@ jobs:
       - name: Login to Amazon ECR
         run: |
           IMAGE_URI=941377157856.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_NAME }}
+          ECR_REGISTRY=$(echo $IMAGE_URI | cut -d'/' -f1)
           aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | \
-            docker login --username AWS --password-stdin $IMAGE_URI
+            docker login --username AWS --password-stdin $ECR_REGISTRY
 
       - name: Set up JDK 17
         uses: actions/setup-java@v3
@@ -56,15 +57,18 @@ jobs:
       - name: SSH and Deploy on EC2
         run: |
           set -x
-          # ✅ Compute values in GitHub Actions runner
+
+          # Compute values before SSH
           IMAGE_URI=941377157856.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_NAME }}
           TAG=${{ env.IMAGE_TAG }}
+          ECR_REGISTRY=$(echo $IMAGE_URI | cut -d'/' -f1)
 
-          echo "Preparing to deploy:"
+          echo "🛰️ Deploying to EC2 at ${{ secrets.EC2_HOST }}"
           echo "📦 IMAGE_URI: $IMAGE_URI"
           echo "🏷️ TAG: $TAG"
+          echo "🔐 Registry: $ECR_REGISTRY"
 
-          # ✅ Pass them into the remote EC2 shell
+          # SSH into EC2 and deploy
           ssh -i dev-key.pem -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} << EOF
             echo "✅ Logged into EC2"
 
@@ -73,15 +77,11 @@ jobs:
             export AWS_REGION=${{ secrets.AWS_REGION }}
             export IMAGE_URI=$IMAGE_URI
             export TAG=$TAG
+            export ECR_REGISTRY=$ECR_REGISTRY
 
-            echo "📦 ECR URI: \$IMAGE_URI"
-            echo "🏷️ Image tag: \$TAG"
-            echo "🌍 AWS Region: \$AWS_REGION"
-
-            echo "🔐 Logging into ECR (inside EC2)..."
-            rm -f ~/.docker/config.json
+            echo "🔐 Logging into ECR inside EC2..."
             aws ecr get-login-password --region \$AWS_REGION | \
-              docker login --username AWS --password-stdin \$IMAGE_URI
+              docker login --username AWS --password-stdin \$ECR_REGISTRY
 
             echo "🧼 Stopping old container if exists..."
             sudo docker stop app || true
@@ -97,4 +97,3 @@ jobs:
             echo "🚀 Running new container..."
             sudo docker run -d --name app -p 80:8080 \$IMAGE_URI:\$TAG
           EOF
-
