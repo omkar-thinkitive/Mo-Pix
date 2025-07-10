@@ -31,4 +31,11 @@ public interface PostRepo extends JpaRepository<PostEntity,Long> {
             AND p.deleted = false
             """)
     PostEntity getPostByUUID(@Param("uuid") UUID uuid);
+
+    @Query("""
+            SELECT p FROM PostEntity p
+            WHERE p.userEntity = :user
+            AND p.deleted = false
+            """)
+    Page<PostEntity> findPostOfUser(@Param("user") UserEntity user, Pageable pageable);
 }

@@ -4,6 +4,7 @@ import com.mopix.Mopix.Dtos.FeedDTO;
 import com.mopix.Mopix.Dtos.Request.UserProfileResponse;
 import com.mopix.Mopix.Dtos.Response.UserFeedResponse;
 import com.mopix.Mopix.Dtos.Response.UserFollowResponse;
+import com.mopix.Mopix.Dtos.Response.UserPostResponse;
 import com.mopix.Mopix.Dtos.dto.CommentDTO;
 import com.mopix.Mopix.Dtos.dto.HashTagDTO;
 import com.mopix.Mopix.Dtos.dto.PostDTO;
@@ -13,14 +14,11 @@ import com.mopix.Mopix.Entity.*;
 import com.mopix.Mopix.Repository.*;
 import com.mopix.Mopix.Services.UserProfileService;
 import com.mopix.Mopix.utils.Expection.MopixExpection;
-import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
@@ -35,8 +33,10 @@ public class UserProfileServiceImpl implements UserProfileService {
 
     @Autowired
     private FollowerRepo followerRepo;
+
     @Autowired
     private PostRepo postRepo;
+
     @Autowired
     private CommentRepo commentRepo;
 
@@ -105,10 +105,17 @@ public class UserProfileServiceImpl implements UserProfileService {
     }
 
     @Override
-    public Page<UserFollowResponse> getUserPosts(String username, Pageable pageable) throws MopixExpection {
+    public Page<UserPostResponse> getUserPosts(String username, Pageable pageable) throws MopixExpection {
 
+        UserEntity user = userRepo.findByUserName(username);
 
-        return null;
+        Page<PostEntity> postEntities = postRepo.findPostOfUser(user,pageable);
+
+        return postEntities.map(posts->{
+            return UserPostResponse.builder()
+                    .postEntity(posts)
+                    .build();
+        });
     }
 
     @Override
@@ -152,7 +159,7 @@ public class UserProfileServiceImpl implements UserProfileService {
                     .user(UserDTO.builder()
                             .id(u.getId())
                             .username(u.getUserName())
-//                            .fullName(u.getFullName()) // adjust if needed
+//                            .fullName(u.getFullName())
 //                            .profilePicture(u.getProfilePicture())
                             .build())
                     .hashTags(p.getHashtags().stream()
@@ -170,13 +177,13 @@ public class UserProfileServiceImpl implements UserProfileService {
         return null;
     }
 
-    public Set<HashTag> processHashtags(Set<String> tagNames, UserEntity user) {
-        Set<HashTag> hashtags = new HashSet<>();
+    public Set<HashTagEntity> processHashtags(Set<String> tagNames, UserEntity user) {
+        Set<HashTagEntity> hashtags = new HashSet<>();
 
         for (String tagName : tagNames) {
-            HashTag hashtag = (HashTag) hashTagRepo.findByName(tagName)
+            HashTagEntity hashtag = (HashTagEntity) hashTagRepo.findByName(tagName)
                     .orElseGet(() -> {
-                        HashTag newTag = new HashTag();
+                        HashTagEntity newTag = new HashTagEntity();
                         newTag.setName(tagName);
                         newTag.setUsageCount(0L);
                         newTag.setLastUpdated(LocalDate.now());

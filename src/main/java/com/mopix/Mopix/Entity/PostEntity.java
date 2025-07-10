@@ -3,13 +3,11 @@ package com.mopix.Mopix.Entity;
 import com.mopix.Mopix.Dtos.enums.MediaType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-import org.w3c.dom.Text;
 
-import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -50,7 +48,7 @@ public class PostEntity extends Base{
             joinColumns = @JoinColumn(name = "post_id"),
             inverseJoinColumns = @JoinColumn(name = "hashtag_id")
     )
-    private Set<HashTag> hashtags;
+    private Set<HashTagEntity> hashtags;
 
     private Long viewsCount;
     private Long likeCount;
@@ -58,5 +56,18 @@ public class PostEntity extends Base{
     private Long commentCount;
     private boolean isNFT = false;
     private boolean deleted = false;
+
+//    @Override
+//    public boolean equals(Object o) {
+//        if (this == o) return true;
+//        if (!(o instanceof PostEntity)) return false;
+//        PostEntity that = (PostEntity) o;
+//        return Objects.equals(postUUID, that.postUUID);
+//    }
+//
+//    @Override
+//    public int hashCode() {
+//        return Objects.hash(postUUID);
+//    }
 
 }

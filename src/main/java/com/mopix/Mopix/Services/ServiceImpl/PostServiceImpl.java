@@ -1,14 +1,11 @@
 package com.mopix.Mopix.Services.ServiceImpl;
 
 import com.mopix.Mopix.Dtos.Request.PostCreateRequest;
-import com.mopix.Mopix.Dtos.enums.MediaType;
+import com.mopix.Mopix.Dtos.Request.PostShareRequest;
+import com.mopix.Mopix.Dtos.Request.ReportPostRequest;
 import com.mopix.Mopix.Dtos.enums.ResponseCode;
-import com.mopix.Mopix.Entity.HashTag;
-import com.mopix.Mopix.Entity.PostEntity;
-import com.mopix.Mopix.Entity.UserEntity;
-import com.mopix.Mopix.Repository.HashTagRepo;
-import com.mopix.Mopix.Repository.PostRepo;
-import com.mopix.Mopix.Repository.UserRepo;
+import com.mopix.Mopix.Entity.*;
+import com.mopix.Mopix.Repository.*;
 import com.mopix.Mopix.Services.AWSService;
 import com.mopix.Mopix.Services.PostService;
 import com.mopix.Mopix.utils.Expection.MopixExpection;
@@ -18,9 +15,9 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class PostServiceImpl implements PostService {
@@ -37,6 +34,12 @@ public class PostServiceImpl implements PostService {
     @Autowired
     private HashTagRepo hashTagRepo;
 
+    @Autowired
+    private PostShareRepo postShareRepo;
+
+    @Autowired
+    private ReportPostRepo reportPostRepo;
+
     @Override
     public String savePost(PostCreateRequest postCreateRequest) throws MopixExpection, IOException {
 
@@ -45,20 +48,20 @@ public class PostServiceImpl implements PostService {
             throw new MopixExpection(ResponseCode.BAD_REQUEST, "User Not Found");
         }
         PostEntity postEntity = new PostEntity();
-        Set<HashTag> hashTags = new HashSet<>();
+        Set<HashTagEntity> hashTagEntities = new HashSet<>();
 
         if(postCreateRequest.getPrimaryHashTag() != null){
             for(String hashtag: postCreateRequest.getPrimaryHashTag()){
-                HashTag hashTag = hashTagRepo.findHashTagByName(hashtag);
-                if(hashTag == null){
-                    HashTag hash = new HashTag();
+                HashTagEntity hashTagEntity = hashTagRepo.findHashTagByName(hashtag);
+                if(hashTagEntity == null){
+                    HashTagEntity hash = new HashTagEntity();
                     hash.setName(hashtag);
                     hash.setUsageCount(0L);
                     hash.setTrendScore(0);
                     hashTagRepo.save(hash);
-                    hashTags.add(hash);
+                    hashTagEntities.add(hash);
                 }else{
-                    hashTags.add(hashTag);
+                    hashTagEntities.add(hashTagEntity);
                 }
             }
         }
@@ -72,22 +75,24 @@ public class PostServiceImpl implements PostService {
             postEntity.setMediaUrl(mediaPreSignedUrl);
             postEntity.setNFT(postEntity.isNFT());
             postEntity.setMediaType(postCreateRequest.getMediaType());
-            postEntity.setHashtags(hashTags);
+            postEntity.setHashtags(hashTagEntities);
             postRepo.save(postEntity);
         } catch (Exception e) {
             throw new MopixExpection(ResponseCode.BAD_REQUEST,"Internal Server Error");
         }
 
-//        if(postCreateRequest.getPrimaryHashTag() != null){
-//            for(String hashtag : postCreateRequest.getPrimaryHashTag()){
-//                HashTag hashTag = hashTagRepo.findHashTagByName(hashtag);
-//                hashTag.getPosts().add(postEntity);
-//                hashTag.setUsageCount(hashTag.getUsageCount() +1);
-//                hashTag.setTrendScore(hashTag.getTrendScore()+1);
-//                hashTag.setLastUpdated(LocalDate.now());
-//                hashTagRepo.save(hashTag);
-//            }
-//        }
+        if(postCreateRequest.getPrimaryHashTag() != null){
+            for(String hashtag : postCreateRequest.getPrimaryHashTag()){
+                HashTagEntity hashTagEntity = hashTagRepo.findHashTagByName(hashtag);
+                hashTagEntity.getPosts().add(postEntity);
+                Long usagecount = hashTagEntity.getUsageCount();
+                hashTagEntity.setUsageCount(usagecount +1);
+                double trendScore = hashTagEntity.getTrendScore();
+                hashTagEntity.setTrendScore(trendScore+1);
+                hashTagEntity.setLastUpdated(LocalDate.now());
+                hashTagRepo.save(hashTagEntity);
+            }
+        }
         return String.valueOf(postEntity.getPostUUID());
     }
 
@@ -99,4 +104,33 @@ public class PostServiceImpl implements PostService {
         }
         return postEntity;
     }
+
+    @Override
+    public void sharePost(PostShareRequest postShareRequest) throws MopixExpection {
+
+        UserEntity user = userRepo.findByUserName(postShareRequest.getSenderUser());
+        PostEntity post = postRepo.getPostByUUID(postShareRequest.getPostUUID());
+        List<UserEntity> userEntities = new ArrayList<>();
+
+        PostShareEntity postShareEntity = new PostShareEntity();
+        postShareEntity.setUserEntity(user);
+        postShareEntity.setPost(post);
+        postShareEntity.setSharedAt(LocalDateTime.now());
+        postShareRepo.save(postShareEntity);
+
+        List<PostShareRecipientEntity> recipients = postShareRequest.getListReciverUser().stream().map(recipientId -> {
+            UserEntity recipient = userRepo.findByUserName(recipientId);
+//                    .orElseThrow(() -> new MopixExpection(ResponseCode.BAD_REQUEST,"Recipient not found: "));
+            PostShareRecipientEntity recipientEntity = new PostShareRecipientEntity();
+            recipientEntity.setPostShare(postShareEntity);
+            recipientEntity.setRecipient(recipient);
+            recipientEntity.setSeen(false);
+            return recipientEntity;
+        }).collect(Collectors.toList());
+
+        postShareEntity.setRecipients(recipients);
+        postShareRepo.save(postShareEntity);
+    }
+
+
 }

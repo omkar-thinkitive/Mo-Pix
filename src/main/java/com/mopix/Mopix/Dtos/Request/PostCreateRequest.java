@@ -1,9 +1,6 @@
 package com.mopix.Mopix.Dtos.Request;
 
 import com.mopix.Mopix.Dtos.enums.MediaType;
-import com.mopix.Mopix.Entity.HashTag;
-import com.mopix.Mopix.Entity.UserEntity;
-import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Data;
 

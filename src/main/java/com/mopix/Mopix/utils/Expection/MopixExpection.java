@@ -3,9 +3,9 @@ package com.mopix.Mopix.utils.Expection;
 import com.mopix.Mopix.Dtos.enums.ResponseCode;
 import lombok.Getter;
 
+@Getter
 public class MopixExpection extends Exception{
 
-    @Getter
     private ResponseCode errorCode;
     private String[] fields;
     private Exception exception;

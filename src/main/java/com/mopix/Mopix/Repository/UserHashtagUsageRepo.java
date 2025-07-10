@@ -1,6 +1,6 @@
 package com.mopix.Mopix.Repository;
 
-import com.mopix.Mopix.Entity.HashTag;
+import com.mopix.Mopix.Entity.HashTagEntity;
 import com.mopix.Mopix.Entity.UserEntity;
 import com.mopix.Mopix.Entity.UserHashtagUsageEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,6 +11,6 @@ import java.util.Optional;
 @Repository
 public interface UserHashtagUsageRepo extends JpaRepository<UserHashtagUsageEntity,Long> {
 
-    Optional<UserHashtagUsageEntity> findByUserAndHashtag(UserEntity user, HashTag hashtag);
+    Optional<UserHashtagUsageEntity> findByUserAndHashtag(UserEntity user, HashTagEntity hashtag);
 
 }

@@ -4,6 +4,7 @@ package com.mopix.Mopix.Services;
 import com.mopix.Mopix.Dtos.Request.UserProfileResponse;
 import com.mopix.Mopix.Dtos.Response.UserFeedResponse;
 import com.mopix.Mopix.Dtos.Response.UserFollowResponse;
+import com.mopix.Mopix.Dtos.Response.UserPostResponse;
 import com.mopix.Mopix.utils.Expection.MopixExpection;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,7 +20,7 @@ public interface UserProfileService {
 
     Page<UserFollowResponse> getUserFollower(String username,Pageable pageable) throws MopixExpection;
 
-    Page<UserFollowResponse> getUserPosts(String username, Pageable pageable) throws MopixExpection;
+    Page<UserPostResponse> getUserPosts(String username, Pageable pageable) throws MopixExpection;
 
     Page<UserFeedResponse> getUserFeed(String username, Pageable pageable) throws MopixExpection;
 
