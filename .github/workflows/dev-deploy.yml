@@ -53,7 +53,7 @@ jobs:
       - name: Create deployment script
         run: |
           IMAGE_URI=941377157856.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_NAME }}
-          TAG=${{ env.IMAGE_TAG }}
+          TAG=$(git rev-parse --short HEAD)
 
           cat << EOF > deploy.sh
           #!/bin/bash
@@ -71,6 +71,7 @@ jobs:
           rm -f ~/.docker/config.json
           aws ecr get-login-password --region \$AWS_REGION | docker login --username AWS --password-stdin \$IMAGE_URI
 
+          echo "hiii $TAG "
           echo "🛑 Stopping existing container (if any)..."
           sudo docker stop app || true
           sudo docker rm app || true
