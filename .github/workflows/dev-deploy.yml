@@ -62,7 +62,6 @@ jobs:
           export AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
           export AWS_REGION=${{ secrets.AWS_REGION }}
           IMAGE_URI=941377157856.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_NAME }}
-          TAG=${{ env.IMAGE_TAG }}
           echo "🔐 Logging into ECR (inside EC2)..."
           rm -f ~/.docker/config.json
           aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $IMAGE_URI
