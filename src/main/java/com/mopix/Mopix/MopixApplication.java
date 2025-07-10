@@ -6,7 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class MopixApplication {
 	public static void main(String[] args) {
-		System.out.println("Running Mopix dev_v5");
+		System.out.println("Running Mopix dev_v6");
 		SpringApplication.run(MopixApplication.class, args);
 	}
 
