@@ -26,7 +26,7 @@ public class UserHashtagUsageEntity {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "hashtag_id")
-    private HashTag hashtag;
+    private HashTagEntity hashtag;
 
     @Column(name = "usage_count", nullable = false)
     private int usageCount = 1;
