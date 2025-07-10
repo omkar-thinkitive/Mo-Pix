@@ -11,6 +11,7 @@ import com.mopix.Mopix.utils.Expection.MopixExpection;
 import com.mopix.Mopix.utils.Response;
 import com.mopix.Mopix.Dtos.enums.ResponseCode;
 import com.mopix.Mopix.Services.UserService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.parameters.P;
@@ -27,7 +28,7 @@ public class UserController extends AppController {
     private LikeService likeService;
 
     @PostMapping("/create")
-    ResponseEntity<Response> createUser(@RequestBody UserCreateRequest userCreateRequest) throws MopixExpection {
+    ResponseEntity<Response> createUser(@RequestBody @Valid UserCreateRequest userCreateRequest) throws MopixExpection {
         userService.saveUser(userCreateRequest);
         return success(ResponseCode.CREATED, "User created successfully");
     }
