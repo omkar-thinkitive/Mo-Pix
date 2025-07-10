@@ -5,13 +5,8 @@ import com.mopix.Mopix.Dtos.dto.CommentDTO;
 import com.mopix.Mopix.Dtos.dto.HashTagDTO;
 import com.mopix.Mopix.Dtos.dto.PostDTO;
 import com.mopix.Mopix.Dtos.dto.UserDTO;
-import com.mopix.Mopix.Entity.CommentEntity;
-import com.mopix.Mopix.Entity.HashTag;
-import com.mopix.Mopix.Entity.PostEntity;
-import com.mopix.Mopix.Entity.UserEntity;
 import lombok.Builder;
 import lombok.Data;
-import org.springframework.data.domain.Page;
 
 import java.util.List;
 

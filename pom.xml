@@ -120,11 +120,13 @@
 <!--			<groupId>org.liquibase</groupId>-->
 <!--			<artifactId>liquibase-core</artifactId>-->
 <!--		</dependency>-->
+
 		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-			<scope>provided</scope>
+			<groupId>com.google.firebase</groupId>
+			<artifactId>firebase-admin</artifactId>
+			<version>9.2.0</version>
 		</dependency>
+
 	</dependencies>
 
 	<build>

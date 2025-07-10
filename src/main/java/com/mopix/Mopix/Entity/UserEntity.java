@@ -53,5 +53,7 @@ public class UserEntity {
     @Column(columnDefinition = "TEXT")
     private String profileUrl;
 
+    private String deviceToken;
+
     private boolean deleted = false;
 }

@@ -1,6 +1,8 @@
 package com.mopix.Mopix.Controller;
 
 import com.mopix.Mopix.Dtos.Request.PostCreateRequest;
+import com.mopix.Mopix.Dtos.Request.PostShareRequest;
+import com.mopix.Mopix.Dtos.Request.ReportPostRequest;
 import com.mopix.Mopix.Dtos.enums.ResponseCode;
 import com.mopix.Mopix.Entity.PostEntity;
 import com.mopix.Mopix.Services.PostService;
@@ -30,5 +32,17 @@ public class PostController extends AppController{
     public ResponseEntity<Response> getPost(@RequestParam UUID uuid) throws MopixExpection, IOException {
         PostEntity response = postService.getPost(uuid);
         return success(ResponseCode.SUCCESS,"Post Saved Successfully !", response);
+    }
+
+    @PutMapping("/edit/post/{postid}")
+    public ResponseEntity<Response> editPost(@RequestParam UUID uuid) throws MopixExpection, IOException {
+        PostEntity response = postService.getPost(uuid);
+        return success(ResponseCode.SUCCESS,"Post Saved Successfully !", response);
+    }
+
+    @PostMapping("/share/post")
+    public ResponseEntity<Response> sharePost(@RequestBody PostShareRequest postShareRequest) throws MopixExpection, IOException {
+        postService.sharePost(postShareRequest);
+        return success(ResponseCode.SUCCESS,"Post Share Successfully !");
     }
 }

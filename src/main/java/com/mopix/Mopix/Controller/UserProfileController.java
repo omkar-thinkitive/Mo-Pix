@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.PrettyPrinter;
 import com.mopix.Mopix.Dtos.Request.UserProfileResponse;
 import com.mopix.Mopix.Dtos.Response.UserFeedResponse;
 import com.mopix.Mopix.Dtos.Response.UserFollowResponse;
+import com.mopix.Mopix.Dtos.Response.UserPostResponse;
 import com.mopix.Mopix.Dtos.enums.ResponseCode;
 import com.mopix.Mopix.Services.UserProfileService;
 import com.mopix.Mopix.utils.Expection.MopixExpection;
@@ -46,7 +47,7 @@ public class UserProfileController extends AppController{
 
     @GetMapping("/{username}/post")
     ResponseEntity<Response> getUserPosts(@RequestParam("username") String username,@org.springdoc.core.annotations.ParameterObject Pageable pageable) throws MopixExpection{
-        Page<UserFollowResponse> userProfileResponse = userProfileService.getUserPosts(username,pageable);
+        Page<UserPostResponse> userProfileResponse = userProfileService.getUserPosts(username,pageable);
         return success(ResponseCode.SUCCESS, "User fetched successfully",userProfileResponse);
     }
 
