@@ -51,6 +51,9 @@ jobs:
 
       - name: Create deployment script
         run: |
+          TAG=${{ env.IMAGE_TAG }}
+          IMAGE_URI=941377157856.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_NAME }}
+
           cat << 'EOF' > deploy.sh
           #!/bin/bash
           set -e
