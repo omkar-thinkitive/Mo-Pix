@@ -21,9 +21,10 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Login to Amazon ECR
-        run: |
-          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | \
-          docker login --username AWS --password-stdin 941377157856.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+        with:
+          registry-ids: 34565432345  # Your ECR registry ID
 
       - name: Set up JDK 17
         uses: actions/setup-java@v3
@@ -84,7 +85,6 @@ jobs:
           sudo docker inspect app --format '{{ .Image }}'
           EOF
           
-          # Make script executable
           chmod +x deploy.sh
 
       - name: Deploy to EC2
