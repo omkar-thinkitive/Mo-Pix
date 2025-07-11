@@ -37,9 +37,8 @@ jobs:
       - name: Build and Push Docker image
         run: |
           COMMIT_SHA=$(git rev-parse --short HEAD)
-          IMAGE_URI=941377157856.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_NAME }}
-          docker build --no-cache -t $IMAGE_URI:latest -t $IMAGE_URI:$COMMIT_SHA .
-          docker push $IMAGE_URI:latest
+          IMAGE_URI=34565432345.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_NAME }}
+          docker build --no-cache -t $IMAGE_URI:$COMMIT_SHA .
           docker push $IMAGE_URI:$COMMIT_SHA
           echo "IMAGE_TAG=$COMMIT_SHA" >> $GITHUB_ENV
 
@@ -52,40 +51,42 @@ jobs:
 
       - name: Create deployment script
         run: |
-          IMAGE_URI=941377157856.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_NAME }}
-          TAG=$(git rev-parse --short HEAD)
-
-          cat << EOF > deploy.sh
+          IMAGE_URI=34565432345.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_NAME }}
+          TAG=${{ env.IMAGE_TAG }}
+          cat << 'EOF' > deploy.sh
           #!/bin/bash
           set -e
           echo "✅ Logged into EC2"
-
-          export AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}"
-          export AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}"
-          export AWS_REGION="${{ secrets.AWS_REGION }}"
-
+          export AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID"
+          export AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY"
+          export AWS_REGION="$AWS_REGION"
           IMAGE_URI="$IMAGE_URI"
           TAG="$TAG"
-
-          echo "🔐 Logging into ECR (inside EC2)..."
+          
+          echo "🔐 Logging into ECR..."
           rm -f ~/.docker/config.json
-          aws ecr get-login-password --region \$AWS_REGION | docker login --username AWS --password-stdin \$IMAGE_URI
-
-          echo "hiii $TAG "
-          echo "🛑 Stopping existing container (if any)..."
+          aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $IMAGE_URI
+          
+          echo "🛑 Stopping existing container..."
           sudo docker stop app || true
           sudo docker rm app || true
-
-          echo "🧹 Removing old images..."
-          sudo docker rmi -f \$IMAGE_URI:latest || true
-          sudo docker rmi -f \$IMAGE_URI:\$TAG || true
-
-          echo "⬇️ Pulling latest image..."
-          sudo docker pull \$IMAGE_URI:\$TAG
-
-          echo "🚀 Running container..."
-          CONTAINER_NAME=$(basename $IMAGE_URI)
-          sudo docker run -d --name CONTAINER_NAME -p 80:8080 \$IMAGE_URI:latest
+          
+          echo "🧹 Cleaning up old image..."
+          sudo docker rmi -f $IMAGE_URI:$TAG || true
+          
+          echo "⬇️ Pulling new image..."
+          sudo docker pull $IMAGE_URI:$TAG
+          
+          echo "🚀 Starting container..."
+          sudo docker run -d --name app -p 80:8080 $IMAGE_URI:$TAG
+          
+          echo "🔍 Verifying deployment..."
+          sudo docker inspect app --format '{{ .Image }}'
           EOF
-        env:
-          IMAGE_TAG: $(git rev-parse --short HEAD)
+          
+          # Make script executable
+          chmod +x deploy.sh
+
+      - name: Deploy to EC2
+        run: |
+          ssh -i dev-key.pem -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_HOST }} 'bash -s' < deploy.sh
