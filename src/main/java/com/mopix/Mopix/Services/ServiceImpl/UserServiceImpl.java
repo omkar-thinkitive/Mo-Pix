@@ -11,9 +11,13 @@ import com.mopix.Mopix.Entity.UserEntity;
 import com.mopix.Mopix.Repository.FollowerRepo;
 import com.mopix.Mopix.Repository.PassionRepo;
 import com.mopix.Mopix.Repository.UserRepo;
+import com.mopix.Mopix.Security.JwtProvider;
 import com.mopix.Mopix.Services.UserService;
 import com.mopix.Mopix.utils.Expection.MopixExpection;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -37,13 +41,37 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private FollowerRepo followerRepo;
 
+    @Autowired
+    private LoginServiceImpl loginService;
+
+    @Autowired
+    private AuthenticationManager authenticationManager;
+
+    @Autowired
+    private JwtProvider jwtProvider;
+
     @Override
-    public void saveUser(UserCreateRequest userCreateRequest)throws MopixExpection {
+    public String saveUser(UserCreateRequest userCreateRequest)throws MopixExpection {
 
         UserEntity user = userRepo.findByUserName(userCreateRequest.getUserName());
         if(user != null){
             throw new MopixExpection(ResponseCode.BAD_REQUEST, "UserName Already Exits !");
         }
+
+        if(!userCreateRequest.getEmail().isEmpty()){
+            UserEntity email = userRepo.findByEmail(userCreateRequest.getEmail());
+            if(email != null){
+                throw new MopixExpection(ResponseCode.BAD_REQUEST, "Email Already Exits !");
+            }
+        }
+
+        if(userCreateRequest.getPhone() != null && !userCreateRequest.getPhone().isEmpty()){
+            UserEntity phone = userRepo.findByPhone(userCreateRequest.getPhone());
+            if(phone != null){
+                throw new MopixExpection(ResponseCode.BAD_REQUEST, "Phone Number Already Exits !");
+            }
+        }
+
 
         UserEntity userEntity = UserEntity.builder()
                 .userName(userCreateRequest.getUserName())
@@ -53,19 +81,27 @@ public class UserServiceImpl implements UserService {
                 .lastname(userCreateRequest.getLastname())
                 .password(passwordEncoder.encode(userCreateRequest.getPassword()))
                 .phone(userCreateRequest.getPhone())
+                .email(userCreateRequest.getEmail())
                 .build();
         userRepo.save(userEntity);
 
-        if(userCreateRequest.getPassionList() != null){
-            PassionEntity passion = new PassionEntity();
-            List<PassionEntity> passionList = new ArrayList<>();
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(userCreateRequest.getUserName(), userCreateRequest.getPassword())
+        );
 
-            List<Passion> list = userCreateRequest.getPassionList();
-            for(Passion it: list){
-                passionList.add(new PassionEntity(userEntity,it));
-            }
-            passionRepo.saveAll(passionList);
-        }
+        String token = jwtProvider.generateToken(userCreateRequest.getUserName());
+        return  token;
+
+//        if(userCreateRequest.getPassionList() != null){
+//            PassionEntity passion = new PassionEntity();
+//            List<PassionEntity> passionList = new ArrayList<>();
+//
+//            List<Passion> list = userCreateRequest.getPassionList();
+//            for(Passion it: list){
+//                passionList.add(new PassionEntity(userEntity,it));
+//            }
+//            passionRepo.saveAll(passionList);
+//        }
 
     }
 
