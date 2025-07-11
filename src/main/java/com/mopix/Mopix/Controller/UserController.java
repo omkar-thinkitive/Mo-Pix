@@ -29,8 +29,8 @@ public class UserController extends AppController {
 
     @PostMapping("/create")
     ResponseEntity<Response> createUser(@RequestBody @Valid UserCreateRequest userCreateRequest) throws MopixExpection {
-        userService.saveUser(userCreateRequest);
-        return success(ResponseCode.CREATED, "User created successfully");
+        String token = userService.saveUser(userCreateRequest);
+        return success(ResponseCode.CREATED, "User created successfully",token);
     }
 
     @PostMapping("/save-user")

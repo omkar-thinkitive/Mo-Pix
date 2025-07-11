@@ -29,6 +29,12 @@ public interface UserRepo extends JpaRepository<UserEntity,Long> {
             """)
     UserEntity findByEmail(@Param("email") String email);
 
+    @Query(value = """
+            select u from UserEntity u
+            where u.phone = :email
+            """, nativeQuery = true)
+    UserEntity findByPhone(@Param("email") String email);
+
     @Query("""
             select u from UserEntity u
             where u.uuid = :uuid

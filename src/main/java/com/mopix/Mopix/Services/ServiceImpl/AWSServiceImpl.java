@@ -1,26 +1,33 @@
 package com.mopix.Mopix.Services.ServiceImpl;
 
+
 import com.mopix.Mopix.Services.AWSService;
 import com.mopix.Mopix.utils.Expection.MopixExpection;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.services.s3.model.PutObjectAclResponse;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.services.s3.model.PutObjectResponse;
+import software.amazon.awssdk.services.s3.model.*;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
+import software.amazon.awssdk.services.ses.SesClient;
+import software.amazon.awssdk.services.ses.model.Body;
+import software.amazon.awssdk.services.ses.model.Content; // ✅ Correct
+import software.amazon.awssdk.services.ses.model.Destination; // ✅ Correct
+import software.amazon.awssdk.services.ses.model.Message;
+import software.amazon.awssdk.services.ses.model.SendEmailRequest;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.Collections;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public  class AWSServiceImpl implements AWSService {
 
     @Value("${aws.s3.bucket-name}")
@@ -31,6 +38,9 @@ public  class AWSServiceImpl implements AWSService {
 
     @Autowired
     private S3Presigner s3Presigner;
+
+    @Autowired
+    private SesClient sesClient;
 
 
     @Override
@@ -72,5 +82,40 @@ public  class AWSServiceImpl implements AWSService {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public void sendEmail(String toEmail, String subject, String body) {
+        // ✅ Build Destination with toAddresses as List<String>
+//        toEmail = "deshmukhomkar772@gmail.com";
+//        subject = "Do Your Work !";
+//        body = "Hi";
+        Destination destination = Destination.builder()
+                .toAddresses(Collections.singletonList(toEmail))
+                .build();
+
+        Content subjectContent = Content.builder()
+                .data(subject)
+                .build();
+
+        Content bodyContent = Content.builder()
+                .data(body)
+                .build();
+
+        Body emailBody = Body.builder()
+                .text(bodyContent)
+                .build();
+
+        Message message = Message.builder()
+                .subject(subjectContent)
+                .body(emailBody)
+                .build();
+
+        SendEmailRequest emailRequest = SendEmailRequest.builder()
+                .source("omkar.deshmukh@thinkitive.com") // must be verified in AWS SES
+                .destination(destination)
+                .message(message)
+                .build();
+
+        sesClient.sendEmail(emailRequest);
     }
 }

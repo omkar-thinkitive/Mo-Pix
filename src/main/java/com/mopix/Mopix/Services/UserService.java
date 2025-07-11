@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 @Service
 public interface UserService {
 
-     void saveUser(UserCreateRequest userCreateRequest) throws MopixExpection;
+     String saveUser(UserCreateRequest userCreateRequest) throws MopixExpection;
 
      UserResponse getUser(Long id);
 
