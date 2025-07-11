@@ -52,6 +52,7 @@ jobs:
         run: |
           IMAGE_URI=941377157856.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_NAME }}
           TAG=${{ env.IMAGE_TAG }}
+          CONTAINER_NAME=$(basename $IMAGE_URI)
           cat << EOF > deploy.sh
           #!/bin/bash
           set -e
@@ -73,7 +74,7 @@ jobs:
           echo "⬇️ Pulling latest image..."
           sudo docker pull \$IMAGE_URI:\$TAG
           echo "🚀 Running container..."
-          sudo docker run -d --name app -p 80:8080 \$IMAGE_URI:\$TAG
+          sudo docker run -d --name $CONTAINER_NAME -p 80:8080 \$IMAGE_URI:\$TAG
           EOF
         env:
           IMAGE_TAG: ${{ env.IMAGE_TAG }}
