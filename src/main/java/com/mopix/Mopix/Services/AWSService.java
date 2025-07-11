@@ -11,4 +11,6 @@ public interface AWSService {
     String uploadFile(MultipartFile file) throws MopixExpection, IOException;
 
     String getPreSingedURL(String key) throws MopixExpection, IOException;
+
+    void sendEmail(String to, String subject, String body);
 }

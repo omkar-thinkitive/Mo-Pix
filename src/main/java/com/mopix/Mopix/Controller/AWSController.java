@@ -32,4 +32,12 @@ public class AWSController extends AppController{
 
     }
 
+    @PostMapping("/send")
+    public String sendEmail(@RequestParam String to,
+                            @RequestParam String subject,
+                            @RequestParam String body) {
+        awsService.sendEmail(to, subject, body);
+        return "Email sent successfully!";
+    }
+
 }
