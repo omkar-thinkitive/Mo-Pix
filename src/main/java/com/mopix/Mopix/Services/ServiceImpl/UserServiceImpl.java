@@ -58,14 +58,14 @@ public class UserServiceImpl implements UserService {
             throw new MopixExpection(ResponseCode.BAD_REQUEST, "UserName Already Exits !");
         }
 
-        if(!userCreateRequest.getEmail().isEmpty()){
+        if(userCreateRequest.getEmail() != null){
             UserEntity email = userRepo.findByEmail(userCreateRequest.getEmail());
             if(email != null){
                 throw new MopixExpection(ResponseCode.BAD_REQUEST, "Email Already Exits !");
             }
         }
 
-        if(userCreateRequest.getPhone() != null && !userCreateRequest.getPhone().isEmpty()){
+        if(userCreateRequest.getPhone() != null){
             UserEntity phone = userRepo.findByPhone(userCreateRequest.getPhone());
             if(phone != null){
                 throw new MopixExpection(ResponseCode.BAD_REQUEST, "Phone Number Already Exits !");

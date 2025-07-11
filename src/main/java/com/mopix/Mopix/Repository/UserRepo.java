@@ -32,7 +32,7 @@ public interface UserRepo extends JpaRepository<UserEntity,Long> {
     @Query(value = """
             select u from UserEntity u
             where u.phone = :email
-            """, nativeQuery = true)
+            """)
     UserEntity findByPhone(@Param("email") String email);
 
     @Query("""
