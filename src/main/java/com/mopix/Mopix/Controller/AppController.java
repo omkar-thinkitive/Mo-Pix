@@ -42,4 +42,15 @@ public class AppController {
                 .version("1.0")
                 .build(), code == ResponseCode.CREATED? HttpStatus.CREATED : HttpStatus.OK);
     }
+
+    public ResponseEntity<Response> success(ResponseCode code, String message, String Token, UUID uuid) {
+        return new ResponseEntity<>(Response.builder()
+                .code(code)
+                .message(message)
+                .data(Token)
+                .path(((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest().getRequestURI())
+                .requestId(String.valueOf(uuid))
+                .version("1.0")
+                .build(), code == ResponseCode.CREATED? HttpStatus.CREATED : HttpStatus.OK);
+    }
 }

@@ -53,6 +53,7 @@ public class UserProfileServiceImpl implements UserProfileService {
 
         UserProfileResponse userProfileResponse = UserProfileResponse.builder()
                 .bio(user.getBio())
+                .uuid(user.getUuid())
                 .username(user.getUserName())
                 .userName(user.getFirstname()+ " " + user.getLastname())
                 .profileUrl(user.getProfileUrl())

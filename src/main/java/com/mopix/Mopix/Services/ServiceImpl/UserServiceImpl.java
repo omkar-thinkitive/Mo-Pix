@@ -22,10 +22,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -51,31 +48,31 @@ public class UserServiceImpl implements UserService {
     private JwtProvider jwtProvider;
 
     @Override
-    public String saveUser(UserCreateRequest userCreateRequest)throws MopixExpection {
+    public HashMap<String, String> saveUser(UserCreateRequest userCreateRequest)throws MopixExpection {
 
         UserEntity user = userRepo.findByUserName(userCreateRequest.getUserName());
         if(user != null){
-            throw new MopixExpection(ResponseCode.BAD_REQUEST, "UserName Already Exits !");
+            throw new MopixExpection(ResponseCode.BAD_REQUEST, "UserName Already Exists !");
         }
 
         if(userCreateRequest.getEmail() != null){
             UserEntity email = userRepo.findByEmail(userCreateRequest.getEmail());
             if(email != null){
-                throw new MopixExpection(ResponseCode.BAD_REQUEST, "Email Already Exits !");
+                throw new MopixExpection(ResponseCode.BAD_REQUEST, "Email Already Exists !");
             }
         }
 
         if(userCreateRequest.getPhone() != null){
             UserEntity phone = userRepo.findByPhone(userCreateRequest.getPhone());
             if(phone != null){
-                throw new MopixExpection(ResponseCode.BAD_REQUEST, "Phone Number Already Exits !");
+                throw new MopixExpection(ResponseCode.BAD_REQUEST, "Phone Number Already Exists !");
             }
         }
 
-
+        UUID userUUID = UUID.randomUUID();
         UserEntity userEntity = UserEntity.builder()
                 .userName(userCreateRequest.getUserName())
-                .uuid(UUID.randomUUID())
+                .uuid(userUUID)
                 .firstname(userCreateRequest.getFirstname())
                 .middlename(userCreateRequest.getMiddlename())
                 .lastname(userCreateRequest.getLastname())
@@ -90,7 +87,10 @@ public class UserServiceImpl implements UserService {
         );
 
         String token = jwtProvider.generateToken(userCreateRequest.getUserName());
-        return  token;
+        HashMap<String, String> response = new HashMap<>();
+        response.put("token", token);
+        response.put("uuid", String.valueOf(userUUID));
+        return  response;
 
 //        if(userCreateRequest.getPassionList() != null){
 //            PassionEntity passion = new PassionEntity();

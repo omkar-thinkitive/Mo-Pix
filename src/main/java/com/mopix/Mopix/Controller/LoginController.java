@@ -16,6 +16,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.UUID;
 
 //import static jdk.vm.ci.hotspot.HotSpotCompilationRequestResult.success;
 
@@ -42,7 +43,8 @@ public class LoginController extends AppController{
         );
 
         String token = jwtProvider.generateToken(loginRequest.getUserName());
-        return success(ResponseCode.SUCCESS, "Login successful", token);
+        UUID uuid = userRepo.findByUserName(loginRequest.getUserName()).getUuid();
+        return success(ResponseCode.SUCCESS, "Login successful", token,uuid);
     }
 
 //    @GetMapping("/login/callback-google")

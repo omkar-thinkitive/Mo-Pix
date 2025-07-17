@@ -17,6 +17,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/api/master/v1/user")
 public class UserController extends AppController {
@@ -29,8 +32,10 @@ public class UserController extends AppController {
 
     @PostMapping("/create")
     ResponseEntity<Response> createUser(@RequestBody @Valid UserCreateRequest userCreateRequest) throws MopixExpection {
-        String token = userService.saveUser(userCreateRequest);
-        return success(ResponseCode.CREATED, "User created successfully",token);
+        HashMap<String, String> response = userService.saveUser(userCreateRequest);
+        String token = response.get("token");
+        String uuid = response.get("uuid");
+        return success(ResponseCode.CREATED, "User created successfully",token, UUID.fromString(uuid));
     }
 
     @PostMapping("/save-user")
