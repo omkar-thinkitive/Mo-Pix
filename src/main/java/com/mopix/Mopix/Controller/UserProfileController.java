@@ -36,31 +36,31 @@ public class UserProfileController extends AppController{
     @GetMapping("/{username}/following")
     ResponseEntity<Response> getUserFollowing(@RequestParam("username") String username, @org.springdoc.core.annotations.ParameterObject Pageable pageable) throws MopixExpection{
         Page<UserFollowResponse> userProfileResponse = userProfileService.getUserFollowing(username,pageable);
-        return success(ResponseCode.SUCCESS, "User fetched successfully",userProfileResponse);
+        return success(ResponseCode.SUCCESS, "Following fetched successfully",userProfileResponse);
     }
 
     @GetMapping("/{username}/follower")
     ResponseEntity<Response> getUserFollower(@RequestParam("username") String username,@org.springdoc.core.annotations.ParameterObject Pageable pageable) throws MopixExpection{
         Page<UserFollowResponse> userProfileResponse = userProfileService.getUserFollower(username,pageable);
-        return success(ResponseCode.SUCCESS, "User fetched successfully",userProfileResponse);
+        return success(ResponseCode.SUCCESS, "Follower's fetched successfully",userProfileResponse);
     }
 
     @GetMapping("/{username}/post")
     ResponseEntity<Response> getUserPosts(@RequestParam("username") String username,@org.springdoc.core.annotations.ParameterObject Pageable pageable) throws MopixExpection{
         Page<UserPostResponse> userProfileResponse = userProfileService.getUserPosts(username,pageable);
-        return success(ResponseCode.SUCCESS, "User fetched successfully",userProfileResponse);
+        return success(ResponseCode.SUCCESS, "Post fetched successfully",userProfileResponse);
     }
 
     @GetMapping("/{username}/feed/following")
     ResponseEntity<Response> getUserFeed(@RequestParam("username") String username,@org.springdoc.core.annotations.ParameterObject Pageable pageable) throws MopixExpection{
         Page<UserFeedResponse> userFeedResponse = userProfileService.getUserFeed(username,pageable);
-        return success(ResponseCode.SUCCESS, "User fetched successfully",userFeedResponse);
+        return success(ResponseCode.SUCCESS, "User following feed fetched successfully",userFeedResponse);
     }
 
     @GetMapping("/{username}/feed")
     ResponseEntity<Response> getUserRandomFeed(@RequestParam("username") String username,@org.springdoc.core.annotations.ParameterObject Pageable pageable) throws MopixExpection{
         Page<UserFeedResponse> userFeedResponse = userProfileService.getUserRandomFeed(username,pageable);
-        return success(ResponseCode.SUCCESS, "User fetched successfully",userFeedResponse);
+        return success(ResponseCode.SUCCESS, "User feed fetched successfully",userFeedResponse);
     }
 
 }
