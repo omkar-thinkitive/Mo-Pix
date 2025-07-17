@@ -6,10 +6,13 @@ import com.mopix.Mopix.Dtos.Response.UserResponse;
 import com.mopix.Mopix.utils.Expection.MopixExpection;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.UUID;
+
 @Service
 public interface UserService {
 
-     String saveUser(UserCreateRequest userCreateRequest) throws MopixExpection;
+    HashMap<String, String> saveUser(UserCreateRequest userCreateRequest) throws MopixExpection;
 
      UserResponse getUser(Long id);
 
