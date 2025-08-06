@@ -15,6 +15,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.text.ParseException;
 import java.util.Map;
 import java.util.UUID;
 
@@ -65,11 +68,17 @@ public class LoginController extends AppController{
         return success(ResponseCode.SUCCESS, "Login successful", jwt);
     }
 
-    @GetMapping("/login-github")
-    public ResponseEntity<Response> loginGithub(@RequestParam("code") String code) {
-        String token = loginService.signUpWithGitHub(code);
-        return success(ResponseCode.SUCCESS, "Login successful", token);
+    @GetMapping("/login/callback-google-android")
+    public ResponseEntity<Response> googleLoginForAndroid(@RequestBody Map<String, String> request) throws GeneralSecurityException, IOException {
+        String jwt = loginService.googleLoginForAndroid(request);
+        return success(ResponseCode.SUCCESS, "Login successful", jwt);
     }
+
+//    @GetMapping("/login-github")
+//    public ResponseEntity<Response> loginGithub(@RequestParam("code") String code) {
+//        String token = loginService.signUpWithGitHub(code);
+//        return success(ResponseCode.SUCCESS, "Login successful", token);
+//    }
 
     @GetMapping("/login-facebook")
     public ResponseEntity<Response> loginFacebook(@RequestParam("code") String code) {
@@ -78,8 +87,22 @@ public class LoginController extends AppController{
     }
 
     @PostMapping("/login-apple")
-    public ResponseEntity<Response> loginWithApple(@RequestParam("code") String code) {
-        String token = loginService.signInWithApple(code);
+    public ResponseEntity<Response> loginWithApple(@RequestBody Map<String, String> request) throws IOException, ParseException {
+        String name = request.getOrDefault("name", "Apple User");
+        String idTokenStr = request.get("idToken");
+        String token = loginService.signInWithApple(request);
         return success(ResponseCode.SUCCESS, "Login successful", token);
+    }
+
+    @GetMapping("/login-github")
+    public ResponseEntity<Response> loginGithub(@RequestBody Map<String, String> request) {
+//        String token = loginService.signUpWithGitHub(request);
+        return success(ResponseCode.SUCCESS, "Login successful");
+    }
+
+    @PostMapping("/auth/apple/callback")
+    public ResponseEntity<?> handleAppleCallback(@RequestParam("code") String code) throws Exception {
+        String jwtToken = loginService.signInApple(code);
+        return ResponseEntity.ok(Map.of("accessToken", jwtToken));
     }
 }
