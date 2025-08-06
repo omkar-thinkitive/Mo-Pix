@@ -30,11 +30,14 @@ spring:
     redirect-Uri: http://mopix.mopixdev.com/api/master/v1/login/callback-google
     scope: read:user, user:email
     client-id-ios: 79620373924-92836pkn0hba6vcqd47iuhr05k8pitq1.apps.googleusercontent.com
+    android-client-id: 79620373924-3rh5bhup5cvk3rskt7dbcpr7q71chp8s.apps.googleusercontent.com
+    android-redirect-uri: com.googleusercontent.apps.79620373924-3rh5bhup5cvk3rskt7dbcpr7q71chp8s.apps.googleusercontent.com:/oauth2redirect
+
   apple:
-    client-id: com.example.app
-    team-id: YOUR_TEAM_ID
-    key-id: YOUR_KEY_ID
-    redirect-uri: https://yourapp.com/api/v1/auth/apple/callback
+    client-id: com.MoPix.app
+    team-id: 5W77DZQ2QH
+    key-id: 3G4H63AZDA
+    redirect-uri: http://mopix.mopixdev.com/api/master/v1//auth/apple/callback
 
 
 #springdoc:

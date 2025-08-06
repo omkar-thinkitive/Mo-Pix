@@ -39,6 +39,13 @@ public class SecurityConfig {
                                 "/api/master/v1/login/callback-google",
                                 "/api/master/v1/login-github",
                                 "/api/master/v1/user/create",
+                                "/api/master/v1/auth/apple/callback",
+                                "/api/master/v1/login/callback-google-ios",
+                                "/api/master/v1/login/callback-google-android",
+                                "/api/master/v1/auth/apple/callback",
+
+
+
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",

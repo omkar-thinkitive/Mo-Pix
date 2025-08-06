@@ -3,12 +3,23 @@ package com.mopix.Mopix.Services.ServiceImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.jackson2.JacksonFactory;
 import com.mopix.Mopix.Entity.UserEntity;
 import com.mopix.Mopix.Repository.UserRepo;
 import com.mopix.Mopix.Security.JwtProvider;
 import com.mopix.Mopix.Services.LoginService;
 import com.mopix.Mopix.Services.UserDetailService;
 import com.mopix.Mopix.utils.JwtUtil;
+import com.nimbusds.jose.JWSVerifier;
+import com.nimbusds.jose.crypto.RSASSAVerifier;
+import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.RSAKey;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.extern.slf4j.Slf4j;
@@ -16,25 +27,25 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.IOException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.security.GeneralSecurityException;
 import java.security.KeyFactory;
 import java.security.PrivateKey;
 import java.security.spec.PKCS8EncodedKeySpec;
+import java.text.ParseException;
 import java.time.Instant;
 import java.util.*;
-import io.jsonwebtoken.Claims;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 @Slf4j
@@ -97,6 +108,13 @@ public class LoginServiceImpl implements LoginService {
 
     @Value("${spring.apple.team-id}")
     private String appleTeamId;
+
+    @Value("${spring.google.android-client-id}")
+    private String googleAndroidClientId;
+
+    @Value("${spring.google.android-redirect-uri}")
+    private String androidRedirectUri;
+
 
     private String facebookClientId = "";
     private String facebookClientSecret = "";
@@ -394,6 +412,8 @@ public class LoginServiceImpl implements LoginService {
         return jwtToken;
     }
 
+
+
     private String getFacebookAccessToken(String code) {
         String tokenUri = "https://graph.facebook.com/v12.0/oauth/access_token";
 
@@ -428,74 +448,79 @@ public class LoginServiceImpl implements LoginService {
         return response.getBody();
     }
 
-    public String signInWithApple(String code) {
-        String clientSecret = generateClientSecret();
-
-        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-        params.add("client_id", appleClientId);
-        params.add("client_secret", clientSecret);
-        params.add("code", code);
-        params.add("grant_type", "authorization_code");
-        params.add("redirect_uri", appleRedirectUri);
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-
-        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
-
-        ResponseEntity<Map> response = restTemplate.postForEntity("https://appleid.apple.com/auth/token", request, Map.class);
-
-        String idToken = (String) response.getBody().get("id_token"); // Contains user info (JWT)
-        Map<String, Object> claims = decodeJwt(idToken);
-
-        String email = (String) claims.get("email");
-
-        if (email == null) throw new RuntimeException("Apple email not found");
-
-        // Save user or fetch existing
-        UserEntity user = userRepo.findByUserName(email);
-        if (user == null) {
-            user = new UserEntity();
-            user.setUserName(email);
-            user.setFirstname("AppleUser");
-            userRepo.save(user);
-        }
-
-        return jwtProvider.generateToken(email);
+    @Override
+    public String signInWithApple(@RequestBody Map<String, String> request) {
+        return "";
+//        try {
+//            // 1. Parse the token
+//            SignedJWT signedJWT = SignedJWT.parse(idTokenStr);
+//
+//            // 2. Verify token with Apple's public key
+//            if (!verifyAppleToken(signedJWT)) {
+//                return String.valueOf(ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid Apple ID token"));
+//            }
+//
+//            // 3. Extract claims
+//            JWTClaimsSet claims = signedJWT.getJWTClaimsSet();
+//            String email = claims.getStringClaim("email");  // Might be null on repeat login
+//            String appleSub = claims.getSubject(); // Unique user ID from Apple
+//
+//            // Save user or fetch existing
+//            UserEntity user = userRepo.findByUserName(email);
+//            if (user == null) {
+//                user = new UserEntity();
+//                user.setUserName(email);
+//                user.setEmail(email);
+//                user.setFirstname(name);
+//                user.setPassword(String.valueOf(UUID.randomUUID()));
+//                userRepo.save(user);
+//            }
+//            return jwtProvider.generateToken(email);
+//        } catch (Exception e) {
+//            return String.valueOf(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Apple Sign-In Failed: " + e.getMessage()));
+//        }
     }
-
-
-    private String generateClientSecret() {
-        Instant now = Instant.now();
-
-        return Jwts.builder()
-                .setHeaderParam("kid", appleKeyId)
-                .setIssuer(appleTeamId)
-                .setIssuedAt(Date.from(now))
-                .setExpiration(Date.from(now.plusSeconds(86400)))
-                .setAudience("https://appleid.apple.com")
-                .setSubject(appleClientId)
-                .signWith(getPrivateKey(), SignatureAlgorithm.ES256)
-                .compact();
-    }
-
-    private PrivateKey getPrivateKey() {
-        try {
-            String privateKeyContent = Files.readString(Paths.get("AuthKey.p8"))
-                    .replace("-----BEGIN PRIVATE KEY-----", "")
-                    .replace("-----END PRIVATE KEY-----", "")
-                    .replaceAll("\\s+", "");
-
-            byte[] keyBytes = Base64.getDecoder().decode(privateKeyContent);
-
-            PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(keyBytes);
-            KeyFactory keyFactory = KeyFactory.getInstance("EC");
-            return keyFactory.generatePrivate(keySpec);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to load Apple private key", e);
-        }
-    }
-
+//
+//    private boolean verifyAppleToken(SignedJWT jwt) throws Exception {
+//        // 1. Download Apple public keys
+//        URL jwksURL = new URL("https://appleid.apple.com/auth/keys");
+//        JWKSet publicKeys = JWKSet.load(jwksURL);
+//
+//        // 2. Match key by key ID (kid)
+//        JWK jwk = publicKeys.getKeyByKeyId(jwt.getHeader().getKeyID());
+//        if (jwk == null) return false;
+//
+//        // 3. Create verifier
+//        JWSVerifier verifier = new RSASSAVerifier(((RSAKey) jwk).toRSAPublicKey());
+//
+//        // 4. Verify signature
+//        if (!jwt.verify(verifier)) return false;
+//
+//        // 5. Validate claims
+//        JWTClaimsSet claims = jwt.getJWTClaimsSet();
+//        return claims.getIssuer().equals("https://appleid.apple.com") &&
+//                claims.getAudience().contains("com.example.app") && // <-- your bundle ID / client ID
+//                new Date().before(claims.getExpirationTime());
+//    }
+//
+//
+//    private PrivateKey getPrivateKey() {
+//        try {
+//            String privateKeyContent = Files.readString(Paths.get("AuthKey.p8"))
+//                    .replace("-----BEGIN PRIVATE KEY-----", "")
+//                    .replace("-----END PRIVATE KEY-----", "")
+//                    .replaceAll("\\s+", "");
+//
+//            byte[] keyBytes = Base64.getDecoder().decode(privateKeyContent);
+//
+//            PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(keyBytes);
+//            KeyFactory keyFactory = KeyFactory.getInstance("EC");
+//            return keyFactory.generatePrivate(keySpec);
+//        } catch (Exception e) {
+//            throw new RuntimeException("Failed to load Apple private key", e);
+//        }
+//    }
+//
 //    private Map<String, Object> decodeJwt(String jwt) {
 //        Claims claims = Jwts.parserBuilder()
 //                .build()
@@ -506,19 +531,130 @@ public class LoginServiceImpl implements LoginService {
 //    }
 
 
-    private Map<String, Object> decodeJwt(String jwt) {
+//    private Map<String, Object> decodeJwt(String jwt) {
+//        try {
+//            String[] parts = jwt.split("\\.");
+//            if (parts.length < 2) throw new IllegalArgumentException("Invalid JWT format");
+//
+//            String payload = parts[1];
+//            byte[] decodedBytes = Base64.getUrlDecoder().decode(payload);
+//            String json = new String(decodedBytes, StandardCharsets.UTF_8);
+//
+//            ObjectMapper mapper = new ObjectMapper();
+//            return mapper.readValue(json, new TypeReference<>() {});
+//        } catch (Exception e) {
+//            throw new RuntimeException("Failed to decode JWT", e);
+//        }
+//    }
+
+    @Override
+    public String googleLoginForAndroid(@RequestBody Map<String, String> request) throws GeneralSecurityException, IOException {
+        String idTokenStr = request.get("idToken");
+
+        GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier
+                .Builder(new NetHttpTransport(), JacksonFactory.getDefaultInstance())
+                .setAudience(Collections.singletonList(googleAndroidClientId))
+                .build();
+
+        GoogleIdToken idToken = verifier.verify(idTokenStr);
+
+        if (idToken == null) {
+            return String.valueOf(ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid ID token"));
+        }
+
+        GoogleIdToken.Payload payload = idToken.getPayload();
+        String email = payload.getEmail();
+        String name = (String) payload.get("name");
+        String pictureUrl = (String) payload.get("picture");
+
+        // 1. Find or create user
+        UserEntity user = userRepo.findByEmail(email);
+        if(user == null){
+            user = new UserEntity();
+            user.setEmail(email);
+            user.setUserName(email);
+            user.setFirstname(name);
+            user.setDeviceToken(idTokenStr);
+            userRepo.save(user);
+        }
+        return jwtProvider.generateToken(email);
+    }
+
+    @Override
+    public String signInApple(String authorizationCode) throws Exception {
+        Map<String, String> tokenResponse = exchangeCodeForToken(authorizationCode);
+        String idToken = tokenResponse.get("id_token");
+
+        SignedJWT jwt = SignedJWT.parse(idToken);
+        JWTClaimsSet claims = jwt.getJWTClaimsSet();
+
+        String email = claims.getStringClaim("email");
+        String appleSub = claims.getSubject();
+
+        // Lookup or create user
+        UserEntity user = userRepo.findByEmail(email);
+        if (user == null) {
+            user = new UserEntity();
+            user.setUserName(appleSub);
+            user.setEmail(email != null ? email : appleSub + "@apple.com");
+            user.setUserName(email != null ? email.split("@")[0] : appleSub);
+            userRepo.save(user);
+        }
+
+        return jwtProvider.generateToken(user.getEmail());
+    }
+
+    private Map<String, String> exchangeCodeForToken(String authorizationCode) throws IOException {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        params.add("grant_type", "authorization_code");
+        params.add("code", authorizationCode);
+        params.add("redirect_uri", appleRedirectUri);
+        params.add("client_id", appleClientId);
+        params.add("client_secret", generateAppleClientSecret());
+
+        HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(params, headers);
+        RestTemplate restTemplate = new RestTemplate();
+
+        ResponseEntity<Map> response = restTemplate.postForEntity(
+                "https://appleid.apple.com/auth/token", entity, Map.class);
+
+        return response.getBody();
+    }
+
+    private String generateAppleClientSecret() {
+        Instant now = Instant.now();
+
+        return Jwts.builder()
+                .setHeaderParam("kid", appleKeyId)
+                .setIssuer(appleTeamId)
+                .setIssuedAt(Date.from(now))
+                .setExpiration(Date.from(now.plusSeconds(3600)))
+                .setAudience("https://appleid.apple.com")
+                .setSubject("com.mopix.mopixdev.com")
+                .signWith(getApplePrivateKey(), SignatureAlgorithm.ES256)
+                .compact();
+    }
+
+    private PrivateKey getApplePrivateKey() {
         try {
-            String[] parts = jwt.split("\\.");
-            if (parts.length < 2) throw new IllegalArgumentException("Invalid JWT format");
+            String privateKeyPem = Files.readString(Paths.get("AuthKey_YOUR_KEY_ID.p8"));
+            privateKeyPem = privateKeyPem
+                    .replace("-----BEGIN PRIVATE KEY-----", "")
+                    .replace("-----END PRIVATE KEY-----", "")
+                    .replaceAll("\\s", "");
 
-            String payload = parts[1];
-            byte[] decodedBytes = Base64.getUrlDecoder().decode(payload);
-            String json = new String(decodedBytes, StandardCharsets.UTF_8);
-
-            ObjectMapper mapper = new ObjectMapper();
-            return mapper.readValue(json, new TypeReference<>() {});
+            byte[] keyBytes = Base64.getDecoder().decode(privateKeyPem);
+            PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(keyBytes);
+            KeyFactory keyFactory = KeyFactory.getInstance("EC");
+            return keyFactory.generatePrivate(keySpec);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to decode JWT", e);
+            throw new RuntimeException("Failed to load Apple private key", e);
         }
     }
+
+
+
 }
