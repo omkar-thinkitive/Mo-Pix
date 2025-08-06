@@ -10,6 +10,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
@@ -27,18 +28,27 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     public String userNameFromToken = "";
 
+    private static final AntPathMatcher pathMatcher = new AntPathMatcher();
+
+
     private static final List<String> EXCLUDED_PATHS = List.of(
             "/api/master/v1/login",
             "/api/master/v1/login/callback-google",
             "/api/master/v1/login-github",
             "/api/master/v1/user/create",
-            "/swagger-ui", "/swagger-ui/", "/swagger-ui/index.html",
-            "/v3/api-docs/**",
+            "/api/master/v1/auth/apple/callback",
+            "/api/master/v1/login/callback-google-ios",
+            "/api/master/v1/login/callback-google-android",
             "/swagger-ui/**",
-            "/swagger-ui.html",
+            "/v3/api-docs/**",
             "/swagger-resources/**",
-            "/webjars/**"
+            "/webjars/**",
+            "/swagger-ui.html"
     );
+
+    private boolean isExcluded(String path) {
+        return EXCLUDED_PATHS.stream().anyMatch(p -> pathMatcher.match(p, path));
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -47,7 +57,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String path = request.getServletPath();
 
-        if (EXCLUDED_PATHS.stream().anyMatch(path::startsWith)) {
+        if (isExcluded(path)) {
             filterChain.doFilter(request, response);
             return;
         }
