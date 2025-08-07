@@ -27,7 +27,7 @@ spring:
   google:
     client-id: 79620373924-fqappcekpmntfj00lfj3i1omseo7a395.apps.googleusercontent.com
     client-secret: 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
-    redirect-Uri: http://mopix.mopixdev.com/api/master/v1/login/callback-google
+    redirect-Uri: https://mopix.mopixdev.com/api/master/v1/login/callback-google
     scope: read:user, user:email
     client-id-ios: 79620373924-92836pkn0hba6vcqd47iuhr05k8pitq1.apps.googleusercontent.com
     android-client-id: 79620373924-3rh5bhup5cvk3rskt7dbcpr7q71chp8s.apps.googleusercontent.com
