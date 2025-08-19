@@ -9,6 +9,7 @@ import com.mopix.Mopix.Services.LoginService;
 import com.mopix.Mopix.utils.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.neo4j.Neo4jProperties;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -105,4 +106,21 @@ public class LoginController extends AppController{
         String jwtToken = loginService.signInApple(code);
         return ResponseEntity.ok(Map.of("accessToken", jwtToken));
     }
+
+    @GetMapping(value = "/privacy-policy", produces = MediaType.TEXT_HTML_VALUE)
+    public ResponseEntity<String> getPrivacyPolicy() {
+        return ResponseEntity.ok(loginService.getPrivacyPolicy());
+    }
+
+    @GetMapping(value = "/data-deletion", produces = MediaType.TEXT_HTML_VALUE)
+    public ResponseEntity<String> getDataDeletionInstructions() {
+        return ResponseEntity.ok(loginService.getDataDeletionInstructions());
+    }
+
+    // Optional: Facebook "Data Deletion Callback"
+//    @PostMapping("/delete-facebook-user")
+//    public ResponseEntity<String> deleteFacebookUser(@RequestParam("user_id") String facebookIdOrEmail) {
+//        String result = loginService.deleteUserData(facebookIdOrEmail);
+//        return ResponseEntity.ok(result);
+//    }
 }

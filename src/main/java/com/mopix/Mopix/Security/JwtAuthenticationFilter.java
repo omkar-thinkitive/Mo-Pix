@@ -39,6 +39,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/api/master/v1/auth/apple/callback",
             "/api/master/v1/login/callback-google-ios",
             "/api/master/v1/login/callback-google-android",
+            "/api/master/v1/privacy-policy",
+            "/api/master/v1/data-deletion",
+            "/api/master/v1/login-facebook",
+
+
             "/swagger-ui/**",
             "/v3/api-docs/**",
             "/swagger-resources/**",
