@@ -24,4 +24,8 @@ public interface LoginService {
     String googleLoginForAndroid(@RequestBody Map<String, String> request) throws GeneralSecurityException, IOException;
 
     String signInApple(String code) throws Exception;
+
+    String getPrivacyPolicy();
+
+    String getDataDeletionInstructions();
 }
