@@ -276,6 +276,7 @@ public class LoginServiceImpl implements LoginService {
             userEntity = new UserEntity();
             userEntity.setUserName(email);
             userEntity.setFirstname(name != null ? name : "Unknown");
+            userEntity.setDeviceToken(code);
             userEntity.setPassword(UUID.randomUUID().toString());
             userRepo.save(userEntity);
         }
@@ -653,6 +654,43 @@ public class LoginServiceImpl implements LoginService {
         } catch (Exception e) {
             throw new RuntimeException("Failed to load Apple private key", e);
         }
+    }
+
+    public String getPrivacyPolicy() {
+        return """
+                <html>
+                <head><title>Privacy Policy</title></head>
+                <body>
+                    <h1>Privacy Policy</h1>
+                    <p>We value your privacy. Our app only collects basic information 
+                    (such as name and email) from Facebook when you log in.</p>
+                    
+                    <p>We use this information solely to create and manage your account. 
+                    We do not share your data with third parties.</p>
+                    
+                    <p>You may request deletion of your account and data at any time by 
+                    contacting us at <a href="mailto:support@yourdomain.com">support@yourdomain.com</a>.</p>
+                    
+                    <p>Last updated: August 2025</p>
+                </body>
+                </html>
+                """;
+    }
+
+    public String getDataDeletionInstructions() {
+        return """
+                <html>
+                <head><title>Data Deletion</title></head>
+                <body>
+                    <h1>Data Deletion Instructions</h1>
+                    <p>If you want your Facebook data removed from our app, please
+                    email us at <a href="mailto:support@mopix.com">support@mopix.com</a> 
+                    with your Facebook account email.</p>
+                    
+                    <p>We will delete your data from our records within 48 hours.</p>
+                </body>
+                </html>
+                """;
     }
 
 
