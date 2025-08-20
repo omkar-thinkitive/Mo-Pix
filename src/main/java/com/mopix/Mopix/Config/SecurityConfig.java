@@ -46,6 +46,7 @@ public class SecurityConfig {
                                 "/api/master/v1/privacy-policy",
                                 "/api/master/v1/data-deletion",
                                 "/api/master/v1/login-facebook",
+                                "/home",
 
 
 

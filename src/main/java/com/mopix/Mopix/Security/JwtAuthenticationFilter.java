@@ -42,6 +42,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/api/master/v1/privacy-policy",
             "/api/master/v1/data-deletion",
             "/api/master/v1/login-facebook",
+            "/home",
+
 
 
             "/swagger-ui/**",
