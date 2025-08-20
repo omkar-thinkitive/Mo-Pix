@@ -116,9 +116,9 @@ public class LoginServiceImpl implements LoginService {
     private String androidRedirectUri;
 
 
-    private String facebookClientId = "";
-    private String facebookClientSecret = "";
-    private String facebookRedirectUri = "";
+    private String facebookClientId = "737099875799659";
+    private String facebookClientSecret = "1bcd1748ece912388bf92adc4705e2f7";
+    private String facebookRedirectUri = "https://mopix.mopixdev.com/api/master/v1/login-facebook";
 
 
 
